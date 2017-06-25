@@ -3,6 +3,9 @@ structure SeqCalc = struct
   open Syntax
   infixr 0 $
 
+  fun <$> (f, xs) = List.map f xs
+  infixr 1 <$>
+
   type sequent = prop list * prop
 
   datatype rule =
@@ -42,6 +45,14 @@ structure SeqCalc = struct
          then OneInf (DisjR1, ctx ==> p)
          else OneInf (DisjR2, ctx ==> q)
      | Goal (ctx, p IMPLIES q) => OneInf (ImplR, p :: ctx ==> q)
-     | Goal (_, BOT) = failwith "no ⊥R rule"
+     | Goal (_, BOT) => raise Fail "no ⊥R rule"
+     | _ => raise Fail "right rule internal error"
+
+  infixr 5 mem
+  fun x mem xs = exists (fn y => x = y) xs
+
+  fun prod _  [] = []
+    | prod [] _  = []
+    | prod (x::xs) ys = ((fn y => (x, y)) <$> ys) @ (prod xs ys)
 
 end
