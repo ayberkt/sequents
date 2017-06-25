@@ -1,4 +1,8 @@
 structure Syntax = struct
+  open String
+
+  infixr 0 $
+  fun f $ x = f x
 
   datatype prop =
       VAR of string
@@ -7,5 +11,14 @@ structure Syntax = struct
     | DISJ of prop * prop
     | TOP
     | BOT
+
+  fun parens s = "(" ^ s ^ ")"
+
+  fun pretty (VAR x) = x
+    | pretty (IMPLIES (p1, p2)) = parens $ (pretty p1) ^ " ⊃ " ^ (pretty p2)
+    | pretty (CONJ (p1, p2)) = parens $ (pretty p1) ^ " ∧ " ^ (pretty p2)
+    | pretty (DISJ (p1, p2)) = parens $ (pretty p1) ^ " ∨ " ^ (pretty p2)
+    | pretty TOP = "⊤"
+    | pretty BOT = "⊥"
 
 end
