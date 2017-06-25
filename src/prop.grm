@@ -1,4 +1,4 @@
-open AstSyntax
+open Syntax
 
 %%
 %header (functor PropLrValsFun (structure Token : TOKEN))

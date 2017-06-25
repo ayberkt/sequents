@@ -6,6 +6,8 @@ type lexresult = (svalue, pos) token
 val pos = ref 0
 val eof = fn () => Tokens.EOF(!pos, !pos)
 
+fun move n = let val r = !pos in (pos := !pos + n; r) end
+
 exception LexerError of pos
 
 %%
@@ -19,11 +21,11 @@ whitespace = [\ \t];
 \n                 => (pos := !pos + 1; lex ());
 {whitespace}+      => (lex ());
 
-"=>"               => (Tokens.IMPLIES (!pos, pos := !pos + 2));
-"/\\"              => (Tokens.CONJ    (!pos, pos := !pos + 2));
-"\\/"              => (Tokens.DISJ    (!pos, pos := !pos + 2));
-"T"                => (Tokens.TOP     (!pos, pos := !pos + 1));
-"F"                => (Tokens.BOT     (!pos, pos := !pos + 1));
+"=>"               => (Tokens.IMPLIES (!pos, move 2));
+"/\\"              => (Tokens.CONJ    (!pos, move 2));
+"\\/"              => (Tokens.DISJ    (!pos, move 2));
+"T"                => (Tokens.TOP     (!pos, move 1));
+"F"                => (Tokens.BOT     (!pos, move 1));
 
 "("                => (Tokens.LPAREN (!pos, !pos));
 ")"                => (Tokens.RPAREN (!pos, !pos));
