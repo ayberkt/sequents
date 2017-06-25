@@ -2,6 +2,7 @@ Group is
   $/basis.cm
   $/ml-yacc-lib.cm
   src/main.sml
+  src/seq-calc.sml
   src/parser.sml
   src/prop.grm
   src/prop.lex
