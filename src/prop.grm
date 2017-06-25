@@ -31,7 +31,7 @@ open Syntax
 
 start : prop                                                             (prop)
 
-prop  : IDENT                                                       (VAR IDENT)
+prop  : IDENT                                                      (ATOM IDENT)
       | prop CONJ prop                                    (CONJ (prop1, prop2))
       | prop DISJ prop                                    (DISJ (prop1, prop2))
       | prop IMPLIES prop                              (IMPLIES (prop1, prop2))

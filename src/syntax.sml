@@ -5,7 +5,7 @@ structure Syntax = struct
   fun f $ x = f x
 
   datatype prop =
-      VAR of string
+      ATOM of string
     | IMPLIES of prop * prop
     | CONJ of prop * prop
     | DISJ of prop * prop
