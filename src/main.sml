@@ -6,6 +6,7 @@ structure Main = struct
 
   local
     fun printLn s = print (s ^ "\n")
+    val msg = "\027[22m\027[31mExpression could not be parsed.\027[0m"
     open PropLrVals
   in
     fun loop f =
@@ -13,9 +14,9 @@ structure Main = struct
           val input = valOf ( TextIO.output(TextIO.stdOut, "> ")
                             ; TextIO.flushOut(TextIO.stdOut)
                             ; TextIO.inputLine TextIO.stdIn)
-          val result = f input
       in
-        printLn $ pretty result;
+        printLn $ pretty (f input)
+        handle _ => printLn msg;
         loop f
       end
     end
