@@ -16,7 +16,7 @@ structure Main = struct
                             ; TextIO.inputLine TextIO.stdIn)
       in
         printLn $ pretty (f input)
-        handle _ => printLn msg;
+          handle _ => printLn msg;
         loop f
       end
     end
