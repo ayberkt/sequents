@@ -40,7 +40,7 @@ structure InvCalc = struct
           TwoInf (ConjR, rightInv ctx p, rightInv ctx q)
       | rightInv _ TOP = ZeroInf TopR
       | rightInv (G || O) (p IMPL q) =
-          OneInf (ImplR, rightInv (G || (O @ [p])) q)
+          OneInf (ImplR, rightInv $ G || (O @ [p]) $ q)
   in
     fun prove (Goal (ctx SeqR p CONJ q))= rightInv ctx (p CONJ q)
       | prove (Goal (ctx SeqR TOP)) = rightInv ctx TOP
