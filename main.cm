@@ -3,6 +3,7 @@ Group is
   $/ml-yacc-lib.cm
   src/main.sml
   src/seq-calc.sml
+  src/inversion-calc.sml
   src/parser.sml
   src/prop.grm
   src/prop.lex
