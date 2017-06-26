@@ -40,8 +40,8 @@ structure InvCalc = struct
           TwoInf (ConjR, rightInv ctx p, rightInv ctx q)
       | rightInv _ TOP = ZeroInf TopR
       | rightInv (G || O) (p IMPL q) =
-          OneInf (ImplR, rightInv $ G || (O @ [p]) $ q)
-    fun leftInv ctx p = raise Fail "TODO"
+          OneInf (ImplR, rightInv $ G || (p::O) $ q)
+    fun leftInv _ _ = raise Fail "TODO"
     fun handleRightAtomic (G || O) p =
       if p mem G then ZeroInf Init else leftInv (G || O) p
   in
