@@ -26,7 +26,13 @@ structure InvCalc = struct
     | DisjRtoL
     | TopRtoL
     | DisjL
+    | DisjR1
+    | DisjR2
     | AtomShift
+    | ImplShift
+    | TopL
+    | BotL
+    | ImplL
 
   datatype derivation =
       Goal of sequent
@@ -37,6 +43,12 @@ structure InvCalc = struct
 
   infixr 5 mem
   fun x mem xs = List.exists (fn y => x = y) xs
+
+  fun justified (Goal _) = false
+    | justified (ZeroInf _) = true
+    | justified (OneInf (_, d')) = justified d'
+    | justified (TwoInf (_, d1, d2)) = justified d1 andalso justified d2
+    | justified (Switch (_, d')) = justified d'
 
   local
     fun rightInv ctx (p CONJ q) = TwoInf (ConjR, rightInv ctx p, rightInv ctx q)
@@ -51,7 +63,11 @@ structure InvCalc = struct
             val subgoal2 = leftInv $ G || (q::O) $ r
           in
             TwoInf (DisjL, subgoal1, subgoal2) end
-      | leftInv (G || (TOP::O)) r = leftInv $ G || O $ r
+      | leftInv (G || (TOP::O)) r =
+          OneInf (TopL, leftInv $ G || O $ r)
+      | leftInv (G || (BOT::O)) r = ZeroInf BotL
+      | leftInv (G || ((A IMPL B)::O)) r =
+          OneInf (ImplShift, leftInv $ ((A IMPL B)::G) || O $ r)
       | leftInv _ _ = raise Fail "impossible case in `leftInv`"
     fun handleRightAtomic (G || O) p =
       if p mem G then ZeroInf InitR else leftInv (G || O) p
@@ -59,14 +75,40 @@ structure InvCalc = struct
       if p = r
       then ZeroInf InitL
       else OneInf (AtomShift, leftInv ((p::G) || O) r)
+    fun tryImplL [] r = NONE
+      | tryImplL ((p IMPL q)::G) r =
+          let
+            val d1 = rightInv $ ((p IMPL q)::G) || [] $ r
+            val d2 = rightInv $ G || [q] $ r
+            val candidate = TwoInf (ImplL, d1, d2)
+          in
+            if justified candidate
+            then SOME candidate
+            else tryImplL G r
+          end
+    fun tryImplR1 G p =
+      let
+        val candidate = OneInf (DisjR1, rightInv (G || []) p)
+      in
+        if justified candidate then SOME candidate else NONE
+      end
+    fun tryImplR2 G p =
+      let
+        val candidate = OneInf (DisjR2, rightInv (G || []) p)
+      in
+        if justified candidate then SOME candidate else NONE
+      end
   in
-    fun prove (Goal (ctx SeqR p CONJ q))= rightInv ctx (p CONJ q)
-      | prove (Goal (ctx SeqR TOP)) = rightInv ctx TOP
-      | prove (Goal (ctx SeqR p IMPL q)) = rightInv ctx $ p IMPL q
-      | prove (Goal (ctx SeqR (ATOM p))) = handleRightAtomic ctx (ATOM p)
-      | prove (Goal (ctx SeqR p DISJ q)) = leftInv ctx $ p DISJ q
-      | prove (Goal (ctx SeqR BOT)) = leftInv ctx $ BOT
+    fun prove (Goal (ctx SeqR (ATOM p))) = handleRightAtomic ctx (ATOM p)
       | prove (Goal (ctx SeqL (ATOM p))) = handleLeftAtomic ctx (ATOM p)
+      | prove (Goal ((G || []) SeqL r)) =
+          (case (tryImplR1 G r, tryImplR2 G r, tryImplL G r) of
+              (SOME d1, _,             _) => d1
+            | (_,       SOME d2,       _) => d2
+            | (_,       _,       SOME d3) => d3
+            | (_, _, _) => raise Fail "no derivation found (which should not have been the case)")
+      | prove (Goal (ctx SeqR p)) = rightInv ctx p
+      | prove (Goal (ctx SeqL p)) = leftInv ctx p
   end
 
 end
