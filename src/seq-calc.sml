@@ -27,7 +27,7 @@ structure SeqCalc = struct
 
   infixr 5 CONJ
   infixr 5 DISJ
-  infixr 5 IMPLIES
+  infixr 5 IMPL
 
   infixr 2 ==>
   fun ctx ==> p = Goal (ctx, p)
@@ -44,7 +44,7 @@ structure SeqCalc = struct
          if justified $ OneInf (DisjR1, ctx ==> p)
          then OneInf (DisjR1, ctx ==> p)
          else OneInf (DisjR2, ctx ==> q)
-     | Goal (ctx, p IMPLIES q) => OneInf (ImplR, p :: ctx ==> q)
+     | Goal (ctx, p IMPL q) => OneInf (ImplR, p :: ctx ==> q)
      | Goal (_, BOT) => raise Fail "no ⊥R rule"
      | _ => raise Fail "right rule internal error"
 
