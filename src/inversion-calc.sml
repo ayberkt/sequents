@@ -51,12 +51,20 @@ structure InvCalc = struct
     | justified (Switch (_, d')) = justified d'
 
   local
-    fun rightInv ctx (p CONJ q) = TwoInf (ConjR, rightInv ctx p, rightInv ctx q)
+    fun handleRightAtomic (G || O) p =
+      if p mem G then ZeroInf InitR else leftInv (G || O) p
+    and rightInv ctx (ATOM p) = handleRightAtomic ctx (ATOM p)
+      | rightInv ctx (p CONJ q) = TwoInf (ConjR, rightInv ctx p, rightInv ctx q)
       | rightInv _ TOP = ZeroInf TopR
       | rightInv (G || O) (p IMPL q) =
           OneInf (ImplR, rightInv $ G || (p::O) $ q)
       | rightInv _ _ = raise Fail "impossible case in `rightEnv`"
-    fun leftInv (G || ((p CONJ q)::O)) r = leftInv $ G || (p::q::O) $ r
+    and handleLeftAtomic (G || (p::O)) r =
+      if p = r
+      then ZeroInf InitL
+      else OneInf (AtomShift, leftInv ((p::G) || O) r)
+    and leftInv ctx (ATOM p) = handleLeftAtomic ctx (ATOM p)
+      | leftInv (G || ((p CONJ q)::O)) r = leftInv $ G || (p::q::O) $ r
       | leftInv (G || ((p DISJ q)::O)) r =
           let
             val subgoal1 = leftInv $ G || (p::O) $ r
@@ -69,12 +77,6 @@ structure InvCalc = struct
       | leftInv (G || ((A IMPL B)::O)) r =
           OneInf (ImplShift, leftInv $ ((A IMPL B)::G) || O $ r)
       | leftInv _ _ = raise Fail "impossible case in `leftInv`"
-    fun handleRightAtomic (G || O) p =
-      if p mem G then ZeroInf InitR else leftInv (G || O) p
-    fun handleLeftAtomic (G || (p::O)) r =
-      if p = r
-      then ZeroInf InitL
-      else OneInf (AtomShift, leftInv ((p::G) || O) r)
     fun tryImplL [] r = NONE
       | tryImplL ((p IMPL q)::G) r =
           let
@@ -99,9 +101,7 @@ structure InvCalc = struct
         if justified candidate then SOME candidate else NONE
       end
   in
-    fun prove (Goal (ctx SeqR (ATOM p))) = handleRightAtomic ctx (ATOM p)
-      | prove (Goal (ctx SeqL (ATOM p))) = handleLeftAtomic ctx (ATOM p)
-      | prove (Goal ((G || []) SeqL r)) =
+    fun prove (Goal ((G || []) SeqL r)) =
           (case (tryImplR1 G r, tryImplR2 G r, tryImplL G r) of
               (SOME d1, _,             _) => d1
             | (_,       SOME d2,       _) => d2
