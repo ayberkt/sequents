@@ -1,12 +1,15 @@
 structure Main = struct
   open Parser
   open Syntax
+  open InvCalc
 
   infixr 0 $
+  infixr 4 SeqL
+  infixr 4 SeqR
+  infix 5 ||
 
   local
     fun printLn s = print (s ^ "\n")
-    val msg = "\027[22m\027[31mExpression could not be parsed.\027[0m"
     open PropLrVals
   in
     fun loop f =
@@ -14,11 +17,14 @@ structure Main = struct
           val input = valOf ( TextIO.output(TextIO.stdOut, "> ")
                             ; TextIO.flushOut(TextIO.stdOut)
                             ; TextIO.inputLine TextIO.stdIn)
+          val prop = f input
+          val _ = (prove o Goal $ [] || [] SeqR prop; printLn "Good!")
+                  handle _ => printLn "Bad!"
       in
-        printLn $ pretty (f input)
-          handle _ => printLn msg;
+        printLn $ pretty prop;
         loop f
       end
+      handle (Fail s) => (printLn $ "\027[31m" ^ s ^ "\027[0m"; loop f)
     end
 
 
