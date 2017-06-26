@@ -41,11 +41,16 @@ structure InvCalc = struct
       | rightInv _ TOP = ZeroInf TopR
       | rightInv (G || O) (p IMPL q) =
           OneInf (ImplR, rightInv $ G || (O @ [p]) $ q)
+    fun leftInv ctx p = raise Fail "TODO"
+    fun handleRightAtomic (G || O) p =
+      if p mem G then ZeroInf Init else leftInv (G || O) p
   in
     fun prove (Goal (ctx SeqR p CONJ q))= rightInv ctx (p CONJ q)
       | prove (Goal (ctx SeqR TOP)) = rightInv ctx TOP
       | prove (Goal (ctx SeqR p IMPL q)) = rightInv ctx $ p IMPL q
-      | prove (Goal (ctx SeqR p)) = prove o Goal $ ctx SeqL p
+      | prove (Goal (ctx SeqR (ATOM p))) = handleRightAtomic ctx (ATOM p)
+      | prove (Goal (ctx SeqR p DISJ q)) = leftInv ctx $ p DISJ q
+      | prove (Goal (ctx SeqR BOT)) = leftInv ctx $ BOT
   end
 
 end
