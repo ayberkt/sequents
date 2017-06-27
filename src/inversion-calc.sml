@@ -35,6 +35,7 @@ structure InvCalc = struct
     | ImplShift
     | TopL
     | BotL
+    | BotRtoL
     | ImplL
 
   datatype derivation =
@@ -58,7 +59,9 @@ structure InvCalc = struct
        simply need to verify that it occurs in Γ. *)
     fun handleRightAtomic (G || O) P =
       if P mem G
+      (* If P ∈ Γ then we can just use initR once to conclude our proof. *)
       then ZeroInf InitR
+      (* If P ∉ Γ we switch to left-inversion on P. *)
       else OneInf (AtomRtoL, leftInv $ G || O $ P)
     and rightInv ctx (ATOM p) = handleRightAtomic ctx (ATOM p)
         (* Decompose `p CONJ q` to the task of decomposing p and decomposing q*)
@@ -68,7 +71,11 @@ structure InvCalc = struct
         (* Extend Ω with A and decompose B on the right with that context. *)
         (* Rule: ⊃R. *)
       | rightInv (G || O) (A IMPL B) = OneInf (ImplR, rightInv $ G || (A::O) $ B)
-      | rightInv _ _ = raise Fail "impossible case in `rightEnv`"
+        (* If we encounter disjunction or falsehood, we punt and switch to left
+         * inversion. *)
+      | rightInv (G || O) (A DISJ B) =
+          OneInf (DisjRtoL, leftInv $ G || O $ A DISJ B)
+      | rightInv (G || O) BOT = OneInf (BotRtoL, leftInv $ G || O $ BOT)
     and handleLeftAtomic (G || (p::O)) r =
       if p = r
       then ZeroInf InitL
