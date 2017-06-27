@@ -2,6 +2,7 @@ structure Main = struct
   open Parser
   open Syntax
   open InvCalc
+  open LaTeXGen
 
   infixr 0 $
   infixr 4 SeqL

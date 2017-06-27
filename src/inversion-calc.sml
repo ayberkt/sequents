@@ -50,7 +50,7 @@ structure InvCalc = struct
   fun x mem xs = List.exists (fn y => x = y) xs
 
   fun justified (Goal _) = false
-    | justified (ZeroInf _ _) = true
+    | justified (ZeroInf (_, _)) = true
     | justified (OneInf (_, d')) = justified d'
     | justified (TwoInf (_, d1, d2)) = justified d1 andalso justified d2
     | justified (Switch (_, d')) = justified d'
@@ -87,14 +87,14 @@ structure InvCalc = struct
     and handleRightAtomic (G || O) P =
       if P mem G
       (* If P ∈ Γ then we can just use initR once to conclude our proof. *)
-      then ZeroInf InitR P
+      then ZeroInf (InitR, P)
       (* If P ∉ Γ we switch to left-inversion on P. *)
       else OneInf (AtomRtoL, leftInv $ G || O $ P)
     and rightInv ctx (ATOM p) = handleRightAtomic ctx (ATOM p)
         (* Decompose `p CONJ q` to the task of decomposing p and decomposing q*)
       | rightInv ctx (p CONJ q) = TwoInf (ConjR, rightInv ctx p, rightInv ctx q)
         (* ⊤ cannot be decomposed further, end proof by ⊤R. *)
-      | rightInv _ TOP = ZeroInf TopR TOP
+      | rightInv _ TOP = ZeroInf (TopR, TOP)
         (* Extend Ω with A and decompose B on the right with that context. *)
         (* Rule: ⊃R. *)
       | rightInv (G || O) (A IMPL B) = OneInf (ImplR, rightInv $ G || (A::O) $ B)
@@ -106,7 +106,7 @@ structure InvCalc = struct
     and handleLeftAtomic (G || (P::O)) C =
       (* If P = C, we have C contained in Ω hence are done. *)
       if P = C
-      then ZeroInf InitL P
+      then ZeroInf (InitL, P)
       (* Otherwise we move P into Γ and continue. *)
       else OneInf (AtomShift, leftInv ((P::G) || O) C)
     and leftInv (G || ((ATOM P)::O)) C = handleLeftAtomic (G || ((ATOM P)::O)) C
@@ -124,7 +124,7 @@ structure InvCalc = struct
       | leftInv (G || (TOP::O)) r = OneInf (TopL, leftInv $ G || O $ r)
         (* If there is a ⊥ at the right of Ω we can prove C regardless of
          * whatever it is by using ⊥L. *)
-      | leftInv (G || (BOT::O)) r = ZeroInf BotL BOT
+      | leftInv (G || (BOT::O)) r = ZeroInf (BotL, BOT)
       | leftInv (G || (A IMPL B::O)) C =
           OneInf (ImplShift, leftInv $ (A IMPL B::G) || O $ C)
       | leftInv (G || []) (A DISJ B) =
