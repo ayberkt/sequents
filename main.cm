@@ -4,6 +4,7 @@ Group is
   src/main.sml
   src/seq-calc.sml
   src/inversion-calc.sml
+  src/latex-gen.sml
   src/parser.sml
   src/prop.grm
   src/prop.lex
