@@ -21,6 +21,7 @@ structure InvCalc = struct
 
   datatype rule =
       ConjR
+    | ConjL
     | TopR
     | ImplR
     | InitR
@@ -76,23 +77,30 @@ structure InvCalc = struct
       | rightInv (G || O) (A DISJ B) =
           OneInf (DisjRtoL, leftInv $ G || O $ A DISJ B)
       | rightInv (G || O) BOT = OneInf (BotRtoL, leftInv $ G || O $ BOT)
-    and handleLeftAtomic (G || (p::O)) r =
-      if p = r
+    and handleLeftAtomic (G || (P::O)) C =
+      (* If P = C, we have C contained in Ω hence are done. *)
+      if P = C
       then ZeroInf InitL
-      else OneInf (AtomShift, leftInv ((p::G) || O) r)
+      (* Otherwise we move P into Γ and continue. *)
+      else OneInf (AtomShift, leftInv ((P::G) || O) C)
     and leftInv ctx (ATOM p) = handleLeftAtomic ctx (ATOM p)
-      | leftInv (G || ((p CONJ q)::O)) r = leftInv $ G || (p::q::O) $ r
-      | leftInv (G || ((p DISJ q)::O)) r =
+        (* If there is an A ∧ B at the end of Ω, perform left inversion with
+         * Γ; Ω, A, B with the same succedent. *)
+      | leftInv (G || (A CONJ B::O)) C = OneInf (ConjL, leftInv $ G || (A::B::O) $ C)
+        (* If there is an A ∨ B at the end of Ω, we need to prove C with both
+         * A at the end of Ω and B at the end of Ω. *)
+      | leftInv (G || (A DISJ B::O)) r =
           let
-            val subgoal1 = leftInv $ G || (p::O) $ r
-            val subgoal2 = leftInv $ G || (q::O) $ r
-          in
-            TwoInf (DisjL, subgoal1, subgoal2) end
-      | leftInv (G || (TOP::O)) r =
-          OneInf (TopL, leftInv $ G || O $ r)
+            val (goal1, goal2) = (leftInv $ G || (A::O) $ r, leftInv $ G || (B::O) $ r)
+          in TwoInf (DisjL, goal1, goal2) end
+        (* If there is a ⊤ at the right of Ω just get rid of that and continue
+         * the left-inversion. *)
+      | leftInv (G || (TOP::O)) r = OneInf (TopL, leftInv $ G || O $ r)
+        (* If there is a ⊥ at the right of Ω we can prove C regardless of
+         * whatever it is by using ⊥L. *)
       | leftInv (G || (BOT::O)) r = ZeroInf BotL
-      | leftInv (G || ((A IMPL B)::O)) r =
-          OneInf (ImplShift, leftInv $ (A IMPL B::G) || O $ r)
+      | leftInv (G || (A IMPL B::O)) C =
+          OneInf (ImplShift, leftInv $ (A IMPL B::G) || O $ C)
       | leftInv _ _ = raise Fail "impossible case in `leftInv`"
     fun tryImplL [] r = NONE
       | tryImplL G r =
