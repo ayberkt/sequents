@@ -18,13 +18,17 @@ structure Main = struct
                             ; TextIO.flushOut(TextIO.stdOut)
                             ; TextIO.inputLine TextIO.stdIn)
           val prop = f input
-          val _ = (prove o Goal $ [] || [] SeqR prop; printLn "Good!")
-                  handle _ => printLn "Bad!"
       in
         printLn $ pretty prop;
+        printLn "Searching...";
+        (case prove o Goal $ [] || [] SeqR prop of
+          SOME _ => printLn "Found derivation!"
+        | NONE => printLn "Could not find derivation");
         loop f
       end
-      handle (Fail s) => (printLn $ "\027[31m" ^ s ^ "\027[0m"; loop f)
+      handle
+        Fail s => (printLn $ "\027[31m" ^ s ^ "\027[0m"; loop f)
+      | _ => printLn "Unknown error!?"
     end
 
 

@@ -55,10 +55,36 @@ structure InvCalc = struct
     | justified (TwoInf (_, d1, d2)) = justified d1 andalso justified d2
     | justified (Switch (_, d')) = justified d'
 
+  exception NoProof
+
   local
     (* If an atomic formula is encountered in a right-decomposition sequent we
        simply need to verify that it occurs in Γ. *)
-    fun handleRightAtomic (G || O) P =
+    fun tryDisjR rule G p =
+      let val candidate = OneInf (rule, rightInv (G || []) p)
+      in if justified candidate then SOME candidate else NONE end
+    and tryImplL [] r = NONE
+      | tryImplL G r =
+          let
+            fun isImpl (_ IMPL _) = true
+              | isImpl _ = false
+            val impls = List.filter isImpl G
+            fun try (p IMPL q) =
+              let
+                val d1 = rightInv $ (p IMPL q::G) || [] $ r
+                val d2 = rightInv $ G || [q] $ r
+                val candidate = TwoInf (ImplL, d1, d2)
+              in
+                if justified candidate
+                then SOME candidate
+                else NONE
+              end
+          in
+            case List.filter (fn x => not $ x = NONE) (try <$> impls) of
+              d::_ => d
+            | [] => NONE
+          end
+    and handleRightAtomic (G || O) P =
       if P mem G
       (* If P ∈ Γ then we can just use initR once to conclude our proof. *)
       then ZeroInf InitR
@@ -101,43 +127,18 @@ structure InvCalc = struct
       | leftInv (G || (BOT::O)) r = ZeroInf BotL
       | leftInv (G || (A IMPL B::O)) C =
           OneInf (ImplShift, leftInv $ (A IMPL B::G) || O $ C)
+      | leftInv (G || []) (A DISJ B) =
+          (case (tryDisjR DisjR1 G A, tryDisjR DisjR2 G A) of
+            (SOME d1, _)  => OneInf (DisjR1, d1)
+          | (_, SOME d2)  => OneInf (DisjR2, d2)
+          | (_, _)  => raise NoProof)
+      | leftInv (G || []) C =
+          (case tryImplL G C of
+            SOME d1 => OneInf (ImplL, d1)
+          | NONE => raise NoProof)
       | leftInv _ _ = raise Fail "impossible case in `leftInv`"
-    fun tryImplL [] r = NONE
-      | tryImplL G r =
-          let
-            fun isImpl (_ IMPL _) = true
-              | isImpl _ = false
-            val impls = List.filter isImpl G
-            fun try (p IMPL q) =
-              let
-                val d1 = rightInv $ (p IMPL q::G) || [] $ r
-                val d2 = rightInv $ G || [q] $ r
-                val candidate = TwoInf (ImplL, d1, d2)
-              in
-                if justified candidate
-                then SOME candidate
-                else NONE
-              end
-          in
-            case List.filter (fn x => not $ x = NONE) (try <$> impls) of
-              d::_ => d
-            | [] => NONE
-          end
-
-    fun tryDisjR rule G p =
-      let
-        val candidate = OneInf (rule, rightInv (G || []) p)
-      in
-        if justified candidate then SOME candidate else NONE
-      end
   in
-    fun prove (Goal ((G || []) SeqL r)) =
-        (case (tryDisjR DisjR1 G r, tryDisjR DisjR2 G r, tryImplL G r) of
-           (SOME d1, _,             _) => SOME d1
-        | (_,       SOME d2,       _)  => SOME d2
-        | (_,       _,       SOME d3)  => SOME d3
-        | (_,       _,             _)  => NONE)
-      | prove (Goal (ctx SeqR p)) = SOME $ rightInv ctx p
+    fun prove (Goal (ctx SeqR p)) = SOME $ rightInv ctx p
       | prove (Goal (ctx SeqL p)) = SOME $ leftInv ctx p
   end
 
