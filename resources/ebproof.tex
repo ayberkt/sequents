@@ -1,0 +1,638 @@
+%% ebproof.sty
+%% Copyright 2017 Emmanuel Beffara <manu@beffara.org>
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `maintained'.
+%
+% The Current Maintainer of this work is Emmanuel Beffara.
+%
+% This work consists of the files ebproof.sty and ebproof.tex.
+
+\documentclass{article}
+
+\DeclareRobustCommand\package[1]{\texttt{#1}}
+
+\title{The \package{ebproof} package}
+\author{Emmanuel Beffara \\ \url{manu@beffara.org}}
+\date{Version 2.0 \\ March 17, 2017}
+
+\usepackage{amssymb}
+\usepackage{color}
+\usepackage{fancyvrb}
+\usepackage[a4paper]{geometry}
+\usepackage[colorlinks=true,urlcolor=blue]{hyperref}
+\usepackage{multicol}
+
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathmorphing}
+
+\usepackage{ebproof}
+
+\newcommand\lit[1]{\texttt{#1}}
+\newcommand\cs[1]{\lit{\char`\\#1}}
+\newcommand\env[1]{\lit{#1}}
+\newcommand\opt[1]{\lit{#1}}
+\newcommand\meta[1]{$\langle$\textit{#1}$\rangle$}
+\newcommand\oarg[1]{\lit[\meta{#1}\lit]}
+\newcommand\marg[1]{\lit{\{}\meta{#1}\lit{\}}}
+
+\newenvironment{csdoc}[1]{%
+  \smallbreak\noindent{#1}%
+  \begin{list}{}{%
+    \topsep=1ex%
+  }%
+  \item
+}{%
+  \end{list}%
+}
+
+\newenvironment{example}[1]{%
+  \def\exampleoptions{#1}%
+  \VerbatimOut{example.tex}}{%
+  \endVerbatimOut
+  \begin{center}
+  \begin{minipage}{.4\textwidth}
+    \input{example.tex}
+  \end{minipage}%
+  \begin{minipage}{.6\textwidth}
+    \small
+    \expandafter\VerbatimInput\expandafter[\exampleoptions]{example.tex}
+  \end{minipage}%
+  \end{center}
+}
+
+\setcounter{tocdepth}{2}
+
+\begin{document}
+\maketitle
+
+\begin{multicols}{2}
+  \tableofcontents
+\end{multicols}
+
+\section{Introduction}
+
+The \env{ebproof} package provides commands to typeset proof trees, in the
+style of sequent calculus and related systems:
+
+\begin{example}{gobble=2}
+  \begin{prooftree}
+    \hypo{ \Gamma, A &\vdash B }
+    \infer1[abs]{ \Gamma &\vdash A\to B }
+    \hypo{ \Gamma \vdash A }
+    \infer2[app]{ \Gamma \vdash B }
+  \end{prooftree}
+\end{example}
+
+The structure is very much inspired by the
+\href{http://math.ucsd.edu/~sbuss/ResearchWeb/bussproofs/}{\package{bussproofs}}
+package, in particular for the postfix notation.
+I actually wrote \package{ebproof} because there were some limitations in
+\package{bussproofs} that I did not know how to lift, and also because I did
+not like some choices in that package (and also because it was fun to write).
+
+\section{Environments}
+
+The package provides the \env{prooftree} environment, in a standard and
+starred variants.
+
+\begin{csdoc}{
+    \cs{begin}\lit{\{prooftree\}}\oarg{options}
+      \meta{statements}
+    \cs{end}\lit{\{prooftree\}}}
+  Typeset the proof tree described by the \meta{statements}, as described in
+  section~\ref{sec:statements}.
+  The \meta{options} provide default formatting options for the proof tree.
+  This environment can be used either in math mode or in text mode.
+  It produces a proof tree at the current position in the text flow.
+\end{csdoc}
+
+\begin{csdoc}{
+    \cs{begin}\lit{\{prooftree*\}}\oarg{options}
+      \meta{statements}
+    \cs{end}\lit{\{prooftree*\}}}
+  Typeset the proof on a line of its own; it is essentially equivalent to
+  wrapping the \env{prooftree} environment inside a displayed math
+  environment.
+\end{csdoc}
+
+\noindent
+The starred version is used in situations when a single proof will be
+displayed.
+The non-starred version is useful in order to integrate the proof into some
+larger structure, like two parts of a formula:
+
+\begin{example}{gobble=2}
+  \[
+    \begin{prooftree}
+      \infer0{ \vdash A }
+      \hypo{ \vdash B } \infer1{ \vdash B, C }
+      \infer2{ \vdash A\wedge B, C }
+    \end{prooftree}
+    \quad \rightsquigarrow \quad
+    \begin{prooftree}
+      \infer0{ \vdash A } \hypo{ \vdash B }
+      \infer2{ \vdash A\wedge B }
+      \infer1{ \vdash A\wedge B, C }
+    \end{prooftree}
+  \]
+\end{example}
+
+\section{Statements}
+\label{sec:statements}
+
+Statements describe proofs in postfix notation: when typesetting a proof tree
+whose last rule has, say, two premisses, you will first write statements for
+the subtree of the first premiss, then statements for the subtree of the
+second premiss, then a statement like \cs{infer2}\{\meta{conclusion}\} to
+build an inference with these two subtrees as premisses and the given text as
+conclusion.
+
+Hence statements operate on a stack of proof trees.
+At the beginning of a \lit{prooftree} environment, the stack is empty.
+At the end, it must contain exactly one tree, which is the one that will be
+printed.
+
+Note that the commands defined in this section only exist right inside
+\env{prooftree} environments.
+If you have a macro with the same name as one of the statements, for instance
+\cs{hypo}, then this macro will keep its meaning outside \env{prooftree}
+environments as well as inside the arguments of a statement.
+If you really need to access the statements in another context, you can can
+always call them by prefixing their names with \lit{ebproof}, for instance as
+\cs{ebproofhypo}.
+
+\subsection{Basic statements}
+
+The basic statements for building proofs are the following, where
+\meta{options} stands for arbitrary options as described in
+section~\ref{sec:options}.
+\begin{csdoc}{\cs{hypo}\oarg{options}\marg{text}}
+  Push a new proof tree consisting only in one conclusion line, with no
+  premiss and no line above, in other words a tree with only a leaf
+  (\cs{hypo} stands for \emph{hypothesis}).
+\end{csdoc}
+\begin{csdoc}{\cs{infer}\oarg{options}\marg{arity}\oarg{label}\marg{text}}
+  Build an inference step by taking some proof trees from the top of the
+  stack, assembling them with a rule joining their conclusions and putting a
+  new conclusion below.
+  The \meta{arity} is the number of sub-proofs, it may be any number
+  including 0 (in this case there will be a line above the conclusion but no
+  sub-proof).
+  If \meta{label} is present, it is used as the label on the right of the
+  inference line; it is equivalent to using the \opt{right label} option.
+\end{csdoc}
+
+The \meta{text} in these statements is the contents of the conclusion at the
+root of the tree that the statements create.
+It is typeset in math mode by default but any kind of formatting can be used
+instead, using the \opt{template} option.
+The \meta{label} text is formatted in horizontal text mode by default.
+
+Each proof tree has a vertical axis, used for alignment of successive steps.
+The position of the axis is deduced from the text of the conclusion at the
+root of the tree: if \meta{text} contains the alignment character \verb|&|
+then the axis is set at that position, otherwise the axis is set at the center
+of the conclusion text.
+The \cs{infer} statement makes sure that the axis of the premiss is at the
+same position as the axis of the conclusion.
+If there are several premisses, it places the axis at the center between the
+left of the leftmost conclusion and the right of the rightmost conclusion:
+
+\begin{example}{gobble=2}
+  \begin{prooftree}
+    \hypo{ &\vdash A, B, C }
+    \infer1{ A &\vdash B, C }
+    \infer1{ A, B &\vdash C }
+    \hypo{ D &\vdash E }
+    \infer2{ A, B, D &\vdash C, E }
+    \infer1{ A, B &\vdash C, D, E }
+    \infer1{ A &\vdash B, C, D, E }
+  \end{prooftree}
+\end{example}
+
+\begin{csdoc}{\cs{ellipsis}\marg{label}\marg{text}}
+  Typeset vertical dots, with a label on the right, and a new conclusion.
+  No inference lines are inserted.
+  \begin{example}{gobble=4}
+    \begin{prooftree}
+      \hypo{ \Gamma &\vdash A }
+      \ellipsis{foo}{ \Gamma &\vdash A, B }
+    \end{prooftree}
+  \end{example}
+\end{csdoc}
+
+
+\subsection{Modifying proof trees}
+
+The following additional statements may be used to affect the format of the
+last proof tree on the stack:
+
+\begin{csdoc}{\cs{rewrite}\marg{code}}
+  Rewrite the proof while preserving its size and alignment. The \meta{code}
+  is typeset in horizontal mode, with the following control sequences defined:
+  \begin{itemize}
+  \item \cs{treebox} is a box register that contains the original material,
+  \item \cs{treemark}\marg{name} expands as the position of a given mark with
+    respect to the left of the box.
+  \end{itemize}
+  A simple use of this statement is to change the color of a proof tree:
+  \begin{example}{gobble=4}
+    \begin{prooftree}
+      \hypo{ \Gamma, A &\vdash B }
+      \infer1[abs]{ \Gamma &\vdash A\to B }
+      \rewrite{\color{red}\box\treebox}
+      \hypo{ \Gamma \vdash A }
+      \infer2[app]{ \Gamma \vdash B }
+    \end{prooftree}
+  \end{example}
+  Note the absence of spaces inside the call to \cs{rewrite}, because spaces
+  would affect the position of the tree box.
+  Note also that explicit use of \cs{treebox} is required to actually draw the
+  subtree.
+  Not using it will effectively not render the subtree, while still reserving
+  its space in the enclosing tree:
+  \begin{example}{gobble=4}
+    \begin{prooftree}
+      \hypo{ \Gamma, A &\vdash B }
+      \infer1[abs]{ \Gamma &\vdash A\to B }
+      \rewrite{}
+      \hypo{ \Gamma \vdash A }
+      \infer2[app]{ \Gamma \vdash B }
+    \end{prooftree}
+  \end{example}
+  This kind of manipulation is useful for instance in conjunction with the
+  \package{beamer} package to allow revealing subtrees of a proof tree
+  progressively in successive slides of a given frame.
+\end{csdoc}
+
+\begin{csdoc}{\cs{delims}\marg{left}\marg{right}}
+  Put left and right delimiters around the whole sub-proof, without changing
+  the alignment (the spacing is affected by the delimiters, however).
+  The \meta{left} text must contain an opening occurrence of \cs{left} and the
+  \meta{right} text must contain a matching occurrence of \cs{right}.
+  For instance, \verb|\delims{\left(}{\right)}| will put the
+  sub-proof between parentheses.
+  \begin{example}{gobble=4}
+    \begin{prooftree}
+      \hypo{ A_1 \vee \cdots \vee A_n }
+      \hypo{ [A_i] }
+      \ellipsis{}{ B }
+      \delims{ \left( }{ \right)_{1\leq i\leq n} }
+      \infer2{ B }
+    \end{prooftree}
+  \end{example}
+\end{csdoc}
+
+\section{Options}
+\label{sec:options}
+
+The formatting of trees, conclusion texts and inference rules is affected by
+options, specified using the \LaTeX3 key-value system.
+All options are in the \lit{ebproof} module in the key tree.
+They can be set locally for a proof tree or for a single statement using
+optional arguments in the associated commands.
+
+\begin{csdoc}{\cs{ebproofset}\marg{options}}
+  Set some options.
+  The options will apply in the current scope; using this in preamble will
+  effectively set options globally.
+  Specific options may also be specified for each proof tree and for each
+  statement in a proof tree, using optional arguments.
+\end{csdoc}
+
+\subsection{General shape}
+
+The options in this section only make sense at the global level and at the
+proof level.
+Changing the proof style inside a \lit{proof} environment has undefined
+behaviour.
+
+\begin{csdoc}{\opt{proof style=}\meta{name}}
+  Set the general shape for representing proofs.
+  The following styles are provided:
+  \begin{csdoc}{\lit{upwards}}
+    This is the default style.
+    Proof trees grow upwards, with conclusions below and premisses above.
+  \end{csdoc}
+  \begin{csdoc}{\lit{downwards}}
+    Proof trees grow downwards, with conclusions above and premisses below.
+    \begin{example}{gobble=4}
+      \begin{prooftree}[proof style=downwards]
+        \hypo{ \Gamma, A &\vdash B }
+        \infer1[abs]{ \Gamma &\vdash A\to B }
+        \hypo{ \Gamma \vdash A }
+        \infer2[app]{ \Gamma \vdash B }
+      \end{prooftree}
+    \end{example}
+  \end{csdoc}
+\end{csdoc}
+
+In the optional argument of \lit{prooftree} environments, proof styles can
+be specified directly, without prefixing the name by ``\lit{proof style=}''.
+For instance, the first line of the example above could be written
+\cs{begin}\lit{\{prooftree\}[downwards]} equivalently.
+
+\begin{csdoc}{\opt{center=}\meta{boolean}}
+  If set to \lit{true}, the tree produced by the \env{prooftree} environment
+  will be vertically centered around the text line.
+  If set to \lit{false}, the base line of the tree will be the base line of
+  the conclusion.
+  The default value is \lit{true}.
+  \begin{example}{gobble=4}
+    \begin{prooftree}[center=false]
+      \infer0{ A \vdash A }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}[center=false]
+      \hypo{ \Gamma, A \vdash B }
+      \infer1{ \Gamma \vdash A \to B }
+    \end{prooftree}
+  \end{example}
+\end{csdoc}
+
+\subsection{Spacing}
+
+\begin{csdoc}{\opt{separation=}\meta{dimension}}
+  The horizontal separation between sub-proofs in an inference.
+  The default value is \lit{1.5em}.
+  \begin{example}{gobble=4}
+    \begin{prooftree}[separation=0.5em]
+      \hypo{ A } \hypo{ B } \infer2{ C }
+      \hypo{ D } \hypo{ E } \hypo{ F } \infer3{ G }
+      \hypo{ H } \infer[separation=3em]3{ K }
+    \end{prooftree}
+  \end{example}
+\end{csdoc}
+
+\begin{csdoc}{\opt{rule margin=}\meta{dimension}}
+  The spacing above and below inference lines.
+  The default value is \lit{0.7ex}.
+  \begin{example}{gobble=4}
+    \begin{prooftree}[rule margin=2ex]
+      \hypo{ \Gamma, A &\vdash B }
+      \infer1[abs]{ \Gamma &\vdash A\to B }
+      \hypo{ \Gamma \vdash A }
+      \infer2[app]{ \Gamma \vdash B }
+    \end{prooftree}
+  \end{example}
+\end{csdoc}
+
+\subsection{Shape of inference lines}
+
+\begin{csdoc}{\opt{rule style=}\meta{name}}
+  Set the shape of inference lines.
+  The following values are provided:
+  \begin{csdoc}{\opt{simple}}
+    A simple horizontal rule is drawn.
+    This is the default style.
+  \end{csdoc}
+  \begin{csdoc}{\opt{no rule}}
+    No inference line is drawn.
+    A single space of the length of \lit{rule margin} is inserted.
+  \end{csdoc}
+  \begin{csdoc}{\opt{double}}
+    A double line is drawn.
+  \end{csdoc}
+  \begin{csdoc}{\opt{dashed}}
+    A single dashed line is drawn.
+  \end{csdoc}
+  The precise rendering is influenced by parameters specified below.
+  Arbitrary new shapes can defined using the \lit{rule code} option described
+  below and the \cs{ebproofnewrulestyle} command described in
+  section~\ref{sec:styles}.
+\end{csdoc}
+
+In the optional argument of the \cs{infer} statement, rule styles can be
+specified directly, without prefixing the style name by ``\lit{rule style=}''.
+For instance, \cs{infer}\lit{[dashed]} is equivalent to
+\cs{infer}\lit{[rule style=dashed]}.
+
+\begin{example}{gobble=2}
+  \begin{prooftree}
+    \hypo{ \Gamma &\vdash A \to B }
+    \infer[no rule]1{ \Gamma &\vdash {!A} \multimap B }
+    \hypo{ \Delta &\vdash A }
+    \infer[rule thickness=2pt]1{ \Delta &\vdash {!A} }
+    \infer0{ B \vdash B }
+    \infer[dashed]2{ \Delta, {!A}\multimap B \vdash B }
+    \infer2{ \Gamma, \Delta &\vdash B }
+    \infer[double]1{ \Gamma \cup \Delta &\vdash B }
+  \end{prooftree}
+\end{example}
+
+\begin{csdoc}{\opt{rule thickness=}\meta{dimension}}
+  The thickness of inference lines.
+  It is \lit{0.4pt} by default.
+\end{csdoc}
+\begin{csdoc}{\opt{rule separation=}\meta{dimension}}
+  The distance between the two lines in the \lit{double} rule style.
+  It is \lit{2pt} by default.
+\end{csdoc}
+\begin{csdoc}{\opt{rule dash length=}\meta{dimension}}
+  The length of dashes in the \lit{dashed} rule style.
+  It is \lit{0.2em} by default.
+\end{csdoc}
+\begin{csdoc}{\opt{rule dash space=}\meta{dimension}}
+  The space between dashes in the \lit{dashed} rule style.
+  It is \lit{0.3em} by default.
+\end{csdoc}
+
+\begin{csdoc}{\opt{rule code=}\meta{code}}
+  This option is used to define an arbitrary shape for rules.
+  The \meta{code} is used to render the rule, it is executed in vertical mode
+  in a \cs{vbox} whose \cs{hsize} is set to the width of the rule.
+  Margins above and below are inserted automatically (they can be removed by
+  setting \lit{rule margin} to \lit{0pt}).
+
+  \begin{example}{gobble=4}
+    \begin{prooftree}[rule code={\hbox{\tikz
+        \draw[decorate,decoration={snake,amplitude=.3ex}]
+        (0,0) -- (\hsize,0);}}]
+      \hypo{ \Gamma &\vdash A }
+      \infer1{ \Gamma &\vdash A, \ldots, A }
+      \hypo{ \Delta, A, \ldots, A \vdash \Theta }
+      \infer2{ \Gamma, \Delta \vdash \Theta }
+    \end{prooftree}
+  \end{example}
+  Note that this example requires the \package{tikz} package, with the
+  \package{decorations.pathmorphing} library for the \lit{snake} decoration.
+\end{csdoc}
+
+\subsection{Format of conclusions}
+
+\begin{csdoc}{%
+    \opt{template=}\meta{code} \\
+    \opt{left template=}\meta{code} \\
+    \opt{right template=}\meta{code}}
+  Defines how conclusions are formatted.
+  The code is arbitrary \TeX\ code, composed in horizontal mode.
+  The macro \cs{inserttext} is used to insert the actual text passed to the
+  \cs{hypo} and \cs{infer} statements.
+  The \opt{template} value is used for conclusions with no alignment mark.
+  The \opt{left template} and \opt{right template} values are used on the left
+  and right side of the alignment mark when it is present.
+  The default value for \opt{template} is simply \verb|$\inserttext$|, so that
+  conclusions are set in math mode.
+  The default values for \opt{left template} and \opt{right template} are
+  similar, with spacing assuming that a relation symbol is put near the
+  alignment mark, so that \verb|\infer1{A &\vdash B}| is spaced correctly.
+
+  \begin{example}{gobble=4}
+    \begin{prooftree}[template=(\textbf\inserttext)]
+      \hypo{ foo }
+      \hypo{ bar }
+      \infer1{ baz }
+      \infer2{ quux }
+    \end{prooftree}
+  \end{example}
+\end{csdoc}
+
+\subsection{Format of labels}
+
+\begin{csdoc}{%
+    \opt{left label=}\meta{text} \\
+    \opt{right label=}\meta{text}}
+  The text to use as the labels of the rules, on the left and on the right
+  of the inference line.
+  Using the second optional argument in \cs{infer} is equivalent to setting
+  the \env{right label} option with the value of that argument.
+
+  \begin{example}{gobble=4}
+    \begin{prooftree}
+      \hypo{ \Gamma, A &\vdash B }
+      \infer[left label=$\lambda$]1[abs]
+        { \Gamma &\vdash A\to B }
+      \hypo{ \Gamma \vdash A }
+      \infer[left label=@]2[app]{ \Gamma \vdash B }
+    \end{prooftree}
+  \end{example}
+\end{csdoc}
+\begin{csdoc}{%
+    \opt{left label template=}\meta{code} \\
+    \opt{right label template=}\meta{code}}
+  Defines how rule labels are formatted.
+  The code is arbitrary \TeX\ code, composed in horizontal mode.
+  The macro \cs{inserttext} can be used to insert the actual label text, as
+  defined by the options above.
+  The default values are simply \cs{inserttext} so that labels are set in
+  plain text mode.
+\end{csdoc}
+
+\begin{csdoc}{\opt{label separation=}\meta{dimension}}
+  The spacing between an inference lines and its labels.
+  The default value is \lit{0.5em}.
+\end{csdoc}
+\begin{csdoc}{\opt{label axis=}\meta{dimension}}
+  The height of the horizontal axis used for aligning the labels with the
+  rules. The default value is \lit{0.5ex}.
+\end{csdoc}
+
+
+\subsection{Style macros}
+\label{sec:styles}
+
+The following commands allow for the definition of custom styles using the
+basic style options, in a way similar to PGF's ``styles'' and \LaTeX3's
+``meta-keys''.
+This allows setting a bunch of options with the same values in many proofs
+using a single definition.
+
+\begin{csdoc}{\cs{ebproofnewstyle}\marg{name}\marg{options}}
+  Define a new style option \meta{name} that sets the given \meta{options}.
+
+  For instance, the following code defines a new option \opt{small} that sets
+  various parameters so that proofs are rendered smaller.
+  \begin{example}{gobble=4}
+    \ebproofnewstyle{small}{
+      separation = 1em, rule margin = .5ex,
+      template = \footnotesize$\inserttext$ }
+    \begin{prooftree}[small]
+      \hypo{ \Gamma, A \vdash B }
+      \infer1{ \Gamma \vdash A\to B }
+      \hypo{ \Gamma \vdash A } \infer2{ \Gamma \vdash B }
+    \end{prooftree}
+  \end{example}
+\end{csdoc}
+
+\begin{csdoc}{\cs{ebproofnewrulestyle}\marg{name}\marg{options}}
+  Define a new rule style.
+  The \meta{options} part includes options used to set how to draw rules in
+  the new style.
+
+  The option \opt{rule code} is useful in this command as it allows to
+  define arbitrary rule styles.
+  For instance, the squiggly rule example above could be turned into a new
+  rule style \lit{zigzag} with the following code:
+  \begin{example}{gobble=4}
+    \ebproofnewrulestyle{zigzag}{
+      rule code = {\hbox{\tikz
+        \draw[decorate,decoration={snake,amplitude=.3ex}]
+        (0,0) -- (\hsize,0);}}}
+    \begin{prooftree}
+      \hypo{ \Gamma &\vdash A }
+      \infer1{ \Gamma &\vdash A, \ldots, A }
+      \hypo{ \Delta, A, \ldots, A \vdash \Theta }
+      \infer[zigzag]2{ \Gamma, \Delta \vdash \Theta }
+    \end{prooftree}
+  \end{example}
+\end{csdoc}
+
+
+\section{License}
+
+This work may be distributed and/or modified under the
+conditions of the \LaTeX\ Project Public License, either version 1.3
+of this license or (at your option) any later version.
+The latest version of this license is in
+\begin{center}
+  \url{http://www.latex-project.org/lppl.txt}
+\end{center}
+and version 1.3 or later is part of all distributions of \LaTeX\
+version 2005/12/01 or later.
+
+This work has the LPPL maintenance status `maintained'.
+
+The Current Maintainer of this work is Emmanuel Beffara.
+
+This work consists of the files \texttt{ebproof.sty} and \texttt{ebproof.tex}.
+
+
+\section{History}
+
+This section lists the principal evolutions of the package, in reverse
+chronological order.
+\begin{description}
+\item[Version 2.0]
+  A complete rewrite of the code using the \LaTeX3 programming environment. 
+  The incompatible changes from the user's point of view are the following:
+  \begin{itemize}
+  \item Proof statements are now writtten in lowercase ({i.e.} \cs{Infer} is
+    now written \cs{infer} etc.) but the syntax is otherwise unchanged.
+    The old uppercase commands still work but produce a deprecation warning,
+    they will be removed in a future version.
+  \item New styles are now defined using \cs{ebproofnewstyle} and
+    \cs{ebproofnewrulestyle}. The previous method using PGF styles does not
+    work anymore (because PGF is not used anymore).
+  \end{itemize}
+  The new commands and options are the following:
+  \begin{itemize}
+  \item The statement \cs{rewrite} generalizes \cs{Alter},
+  \item The option \opt{label axis} controls vertical alignment of labels.
+  \end{itemize}
+\item[Version 1.1]
+  A bugfix release.
+  In \opt{template} options, one now uses \cs{inserttext} instead of \lit{\#1}
+  for the text arguments, which improves robustness.
+\item[Version 1.0]
+  The first public release.
+\end{description}
+
+\end{document}
