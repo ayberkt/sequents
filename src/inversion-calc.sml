@@ -109,7 +109,7 @@ structure InvCalc = struct
       then ZeroInf InitL
       (* Otherwise we move P into Γ and continue. *)
       else OneInf (AtomShift, leftInv ((P::G) || O) C)
-    and leftInv ctx (ATOM p) = handleLeftAtomic ctx (ATOM p)
+    and leftInv (G || ((ATOM P)::O)) C = handleLeftAtomic (G || ((ATOM P)::O)) C
         (* If there is an A ∧ B at the end of Ω, perform left inversion with
          * Γ; Ω, A, B with the same succedent. *)
       | leftInv (G || (A CONJ B::O)) C = OneInf (ConjL, leftInv $ G || (A::B::O) $ C)
@@ -136,10 +136,10 @@ structure InvCalc = struct
           (case tryImplL G C of
             SOME d1 => OneInf (ImplL, d1)
           | NONE => raise NoProof)
-      | leftInv _ _ = raise Fail "impossible case in `leftInv`"
   in
-    fun prove (Goal (ctx SeqR p)) = SOME $ rightInv ctx p
-      | prove (Goal (ctx SeqL p)) = SOME $ leftInv ctx p
+    fun prove p =
+      rightInv ([] || []) p
+      handle NoProof => leftInv ([] || []) p
   end
 
 end

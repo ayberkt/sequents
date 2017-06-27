@@ -21,14 +21,12 @@ structure Main = struct
       in
         printLn $ pretty prop;
         printLn "Searching...";
-        (case prove o Goal $ [] || [] SeqR prop of
-          SOME _ => printLn "Found derivation!"
-        | NONE => printLn "Could not find derivation");
+        (prove prop; printLn "Found derivation!");
         loop f
       end
       handle
         Fail s => (printLn $ "\027[31m" ^ s ^ "\027[0m"; loop f)
-      | _ => printLn "Unknown error!?"
+      | NoProof => (printLn "Could not find derivation"; loop f)
     end
 
 
