@@ -104,11 +104,10 @@ structure InvCalc = struct
           OneInf (DisjRtoL, leftInv $ G || O $ A DISJ B)
       | rightInv (G || O) BOT = OneInf (BotRtoL, leftInv $ G || O $ BOT)
     and handleLeftAtomic (G || (P::O)) C =
-      (* If P = C, we have C contained in Ω hence are done. *)
-      if P = C
-      then ZeroInf (InitL, P)
-      (* Otherwise we move P into Γ and continue. *)
-      else OneInf (AtomShift, leftInv ((P::G) || O) C)
+          (* If P = C, we have C contained in Ω hence are done. *)
+          (* Otherwise we move P into Γ and continue. *)
+          if P = C then ZeroInf (InitL, P) else OneInf (AtomShift, leftInv ((P::G) || O) C)
+     | handleLeftAtomic (_ || _) _ = raise Fail "impossible case in handleLeftAtomic"
     and leftInv (G || ((ATOM P)::O)) C = handleLeftAtomic (G || ((ATOM P)::O)) C
         (* If there is an A ∧ B at the end of Ω, perform left inversion with
          * Γ; Ω, A, B with the same succedent. *)
