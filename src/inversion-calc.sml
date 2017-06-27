@@ -62,7 +62,7 @@ structure InvCalc = struct
     and handleLeftAtomic (G || (p::O)) r =
       if p = r
       then ZeroInf InitL
-      else OneInf (AtomShift, leftInv ((p::G) || O) r)
+      else OneInf (AtomShift, leftInv (p::G || O) r)
     and leftInv ctx (ATOM p) = handleLeftAtomic ctx (ATOM p)
       | leftInv (G || ((p CONJ q)::O)) r = leftInv $ G || (p::q::O) $ r
       | leftInv (G || ((p DISJ q)::O)) r =
@@ -75,12 +75,12 @@ structure InvCalc = struct
           OneInf (TopL, leftInv $ G || O $ r)
       | leftInv (G || (BOT::O)) r = ZeroInf BotL
       | leftInv (G || ((A IMPL B)::O)) r =
-          OneInf (ImplShift, leftInv $ ((A IMPL B)::G) || O $ r)
+          OneInf (ImplShift, leftInv $ (A IMPL B::G) || O $ r)
       | leftInv _ _ = raise Fail "impossible case in `leftInv`"
     fun tryImplL [] r = NONE
-      | tryImplL ((p IMPL q)::G) r =
+      | tryImplL (p IMPL q::G) r =
           let
-            val d1 = rightInv $ ((p IMPL q)::G) || [] $ r
+            val d1 = rightInv $ (p IMPL q::G) || [] $ r
             val d2 = rightInv $ G || [q] $ r
             val candidate = TwoInf (ImplL, d1, d2)
           in
