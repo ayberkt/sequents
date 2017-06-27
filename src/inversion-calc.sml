@@ -124,29 +124,21 @@ structure InvCalc = struct
             | [] => NONE
           end
 
-    fun tryImplR1 G p =
+    fun tryDisjR rule G p =
       let
-        val candidate = OneInf (DisjR1, rightInv (G || []) p)
+        val candidate = OneInf (rule, rightInv (G || []) p)
       in
         if justified candidate then SOME candidate else NONE
       end
-
-    fun tryImplR2 G p =
-      let
-        val candidate = OneInf (DisjR2, rightInv (G || []) p)
-      in
-        if justified candidate then SOME candidate else NONE
-      end
-
   in
     fun prove (Goal ((G || []) SeqL r)) =
-          (case (tryImplR1 G r, tryImplR2 G r, tryImplL G r) of
-              (SOME d1, _,             _) => d1
-            | (_,       SOME d2,       _) => d2
-            | (_,       _,       SOME d3) => d3
-            | (_, _, _) => raise Fail "no derivation found (which should not have been the case)")
-      | prove (Goal (ctx SeqR p)) = rightInv ctx p
-      | prove (Goal (ctx SeqL p)) = leftInv ctx p
+        (case (tryDisjR DisjR1 G r, tryDisjR DisjR2 G r, tryImplL G r) of
+           (SOME d1, _,             _) => SOME d1
+        | (_,       SOME d2,       _)  => SOME d2
+        | (_,       _,       SOME d3)  => SOME d3
+        | (_,       _,             _)  => NONE)
+      | prove (Goal (ctx SeqR p)) = SOME $ rightInv ctx p
+      | prove (Goal (ctx SeqL p)) = SOME $ leftInv ctx p
   end
 
 end
