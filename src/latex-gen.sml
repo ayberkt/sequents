@@ -1,11 +1,30 @@
 structure LaTeXGen = struct
   open InvCalc
+  structure TIO = TextIO
 
   fun $ (f, x) = f x
   infix 0 $
 
+  val preamble = TextIO.openIn "resources/preamble.tex"
+
   val out = TextIO.openOut "proof.tex"
-  fun write s = (TextIO.output (out, s ^ "\n"); TextIO.flushOut)
+
+  fun write s = (TextIO.output (out, s); TextIO.flushOut)
+
+  fun copyBeforeProof strm =
+    let
+      val line = valOf $ TIO.inputLine strm
+    in
+      if String.isPrefix "  %% START" line
+      then strm
+      else (write line; copyBeforeProof strm)
+    end
+
+  fun copyAfterProof strm =
+    if TIO.endOfStream strm
+    then ()
+    else (write o valOf o TIO.inputLine $ strm;
+          copyAfterProof strm)
 
   fun ruleName ConjR     = "\\wedge R"
     | ruleName ConjL     = "\\wedge L"
@@ -33,6 +52,19 @@ structure LaTeXGen = struct
   fun genLaTeX (ZeroInf (r, A)) = genZeroInf r A
     | genLaTeX _ = raise Fail "genLaTeX TODO"
 
-  val _ = genLaTeX (ZeroInf (ConjR, ATOM "A"))
+  local
+    open TextIO
+  in
+    val _ =
+      let
+        val strm = copyBeforeProof preamble
+      in
+        (print o valOf o inputLine $ strm;
+        (* Write the proof here. *)
+        write "foo\n";
+        write "bar\n";
+        copyAfterProof strm)
+      end
+  end
 
 end
