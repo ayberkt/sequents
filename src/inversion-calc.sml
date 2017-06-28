@@ -43,7 +43,7 @@ structure InvCalc = struct
       Goal of sequent
     | ZeroInf of rule * prop
     | OneInf of rule * derivation * prop
-    | TwoInf of rule * derivation * derivation
+    | TwoInf of rule * derivation * derivation * prop
     | Switch of rule * derivation
 
   infixr 5 mem
@@ -52,7 +52,7 @@ structure InvCalc = struct
   fun justified (Goal _) = false
     | justified (ZeroInf (_, _)) = true
     | justified (OneInf (_, d', _)) = justified d'
-    | justified (TwoInf (_, d1, d2)) = justified d1 andalso justified d2
+    | justified (TwoInf (_, d1, d2, _)) = justified d1 andalso justified d2
     | justified (Switch (_, d')) = justified d'
 
   exception NoProof
@@ -73,7 +73,7 @@ structure InvCalc = struct
                   let
                     val d1 = rightInv $ (p IMPL q::G) || [] $ r
                     val d2 = rightInv $ G || [q] $ r
-                    val candidate = TwoInf (ImplL, d1, d2)
+                    val candidate = TwoInf (ImplL, d1, d2, p IMPL q)
                   in
                     if justified candidate
                     then SOME candidate
@@ -93,7 +93,7 @@ structure InvCalc = struct
       else OneInf (AtomRtoL, leftInv $ G || O $ P, P)
     and rightInv ctx (ATOM p) = handleRightAtomic ctx (ATOM p)
         (* Decompose `p CONJ q` to the task of decomposing p and decomposing q*)
-      | rightInv ctx (p CONJ q) = TwoInf (ConjR, rightInv ctx p, rightInv ctx q)
+      | rightInv ctx (p CONJ q) = TwoInf (ConjR, rightInv ctx p, rightInv ctx q, p CONJ q)
         (* ⊤ cannot be decomposed further, end proof by ⊤R. *)
       | rightInv _ TOP = ZeroInf (TopR, TOP)
         (* Extend Ω with A and decompose B on the right with that context. *)
@@ -115,10 +115,10 @@ structure InvCalc = struct
       | leftInv (G || (A CONJ B::O)) C = OneInf (ConjL, leftInv $ G || (A::B::O) $ C, C)
         (* If there is an A ∨ B at the end of Ω, we need to prove C with both
          * A at the end of Ω and B at the end of Ω. *)
-      | leftInv (G || (A DISJ B::O)) r =
+      | leftInv (G || (A DISJ B::O)) C =
           let
-            val (goal1, goal2) = (leftInv $ G || (A::O) $ r, leftInv $ G || (B::O) $ r)
-          in TwoInf (DisjL, goal1, goal2) end
+            val (goal1, goal2) = (leftInv $ G || (A::O) $ C, leftInv $ G || (B::O) $ C)
+          in TwoInf (DisjL, goal1, goal2, C) end
         (* If there is a ⊤ at the right of Ω just get rid of that and continue
          * the left-inversion. *)
       | leftInv (G || (TOP::O)) C = OneInf (TopL, leftInv $ G || O $ C, C)

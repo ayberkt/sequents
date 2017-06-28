@@ -64,7 +64,7 @@ structure LaTeXGen = struct
 
   fun genProof (ZeroInf (r, A)) = genInf 0 r A
     | genProof (OneInf (r, d, A)) = (genProof d; genInf 1 r A)
-    | genProof (TwoInf (r, d1, d2)) = (genProof d1; genProof d2; genInf 2 r TOP)
+    | genProof (TwoInf (r, d1, d2, A)) = (genProof d1; genProof d2; genInf 2 r A)
     | genProof _ = raise Fail "genProof TODO"
 
   local
