@@ -70,15 +70,16 @@ structure InvCalc = struct
               | isImpl _ = false
             val impls = List.filter isImpl G
             fun try (p IMPL q) =
-              let
-                val d1 = rightInv $ (p IMPL q::G) || [] $ r
-                val d2 = rightInv $ G || [q] $ r
-                val candidate = TwoInf (ImplL, d1, d2)
-              in
-                if justified candidate
-                then SOME candidate
-                else NONE
-              end
+                  let
+                    val d1 = rightInv $ (p IMPL q::G) || [] $ r
+                    val d2 = rightInv $ G || [q] $ r
+                    val candidate = TwoInf (ImplL, d1, d2)
+                  in
+                    if justified candidate
+                    then SOME candidate
+                    else NONE
+                  end
+              | try _ = raise Fail "should not happend"
           in
             case List.filter (fn x => not $ x = NONE) (try <$> impls) of
               d::_ => d
@@ -137,8 +138,10 @@ structure InvCalc = struct
           | NONE => raise NoProof)
   in
     fun prove p =
-      rightInv ([] || []) p
-      handle NoProof => leftInv ([] || []) p
+      SOME $ rightInv ([] || []) p
+      handle NoProof =>
+        SOME $ leftInv ([] || []) p
+        handle NoProof => NONE
   end
 
 end

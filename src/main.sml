@@ -13,27 +13,15 @@ structure Main = struct
     fun printLn s = print (s ^ "\n")
     open PropLrVals
   in
-    fun loop f =
-      let val dummyEOF = Tokens.EOF(0, 0)
-          val input = valOf ( TextIO.output(TextIO.stdOut, "> ")
-                            ; TextIO.flushOut(TextIO.stdOut)
-                            ; TextIO.inputLine TextIO.stdIn)
-          val prop = f input
+    fun main (arg0, argv) =
+      let
+        val prop = Parser.parse o valOf $ TextIO.inputLine TextIO.stdIn
       in
-        printLn $ pretty prop;
-        printLn "Searching...";
-        (prove prop; printLn "Found derivation!");
-        loop f
+        case prove prop of
+          SOME drv => (printLn "Found proof!"; generate drv; 0)
+        | NONE => (printLn "No proof found"; 1)
       end
-      handle
-        Fail s => (printLn $ "\027[31m" ^ s ^ "\027[0m"; loop f)
-      | NoProof => (printLn "Could not find derivation"; loop f)
-    end
-
-
-  fun parseLoop () = loop Parser.parse
-
-  fun main (arg0, argv) = (parseLoop (); 0)
+  end
 
   val _ = SMLofNJ.exportFn ("sequent",  main)
 
