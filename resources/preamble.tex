@@ -1,6 +1,22 @@
 \documentclass{article}
 \usepackage{ebproof}
 \usepackage{mathpazo}
+\usepackage{xparse}
+
+\newcommand{\prp}[1]{#1}
+
+\NewDocumentCommand \sequent { o o m }{
+  \IfNoValueTF{#2}{
+    \IfNoValueTF{#1}{
+      \Gamma^-; \Omega \longrightarrow {\prp{#3}}
+    }{
+      \Gamma^-; \Omega , {\prp{#1}} \longrightarrow {\prp{#3}}
+    }
+  }{
+    \Gamma^-; \Omega , {\prp{#1}}, {\prp{#2}} \longrightarrow {\prp{#3}}
+  }
+}
+
 \newcommand{\rlname}[1]{\mathsf{#1}}
 
 \begin{document}
