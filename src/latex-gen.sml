@@ -62,10 +62,10 @@ structure LaTeXGen = struct
   fun genInf n r A =
         writeLn $ "\\infer" ^ Int.toString n ^ "[$" ^ ruleName r ^ "$]{\\sequent{" ^ genProp A ^ "}}"
 
-  fun genProof (ZeroInf (r, A)) = genInf 0 r A
-    | genProof (OneInf (r, d, A)) = (genProof d; genInf 1 r A)
-    | genProof (TwoInf (r, d1, d2, A)) = (genProof d1; genProof d2; genInf 2 r A)
-    | genProof _ = raise Fail "genProof TODO"
+  fun genDrv (ZeroInf (r, A)) = genInf 0 r A
+    | genDrv (OneInf (r, d, A)) = (genDrv d; genInf 1 r A)
+    | genDrv (TwoInf (r, d1, d2, A)) = (genDrv d1; genDrv d2; genInf 2 r A)
+    | genDrv _ = raise Fail "genDrv TODO"
 
   local
     open TextIO
@@ -76,7 +76,7 @@ structure LaTeXGen = struct
         val _ = copyBeforeProof preamble
       in
         ((* Write the proof here. *)
-        genProof drv;
+        genDrv drv;
         copyAfterProof preamble;
         TextIO.closeOut out)
       end
