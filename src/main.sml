@@ -18,7 +18,7 @@ structure Main = struct
         val prop = Parser.parse o valOf $ TextIO.inputLine TextIO.stdIn
       in
         case prove prop of
-          SOME drv => (printLn "Found proof!"; generate drv; 0)
+          SOME drv => (generate drv; 0)
         | NONE => (printLn "No proof found"; 1)
       end
   end
