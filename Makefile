@@ -1,5 +1,5 @@
 all:
-	sml -m main.cm | grep ^[^'[']
+	sml -m main.cm
 
 clean:
 	rm sequent.x86-darwin
