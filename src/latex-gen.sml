@@ -5,24 +5,26 @@ structure LaTeXGen = struct
   fun $ (f, x) = f x
   infix 0 $
 
-  val preamble = TextIO.openIn "resources/preamble.tex"
-
-  val out = TextIO.openOut "proof.tex"
+  val out = TextIO.stdOut
 
   fun write s = (TextIO.output (out, s); TextIO.flushOut)
 
+  fun writeLn s = write $ "  " ^ s ^ "\n"
+
   fun copyBeforeProof strm =
-    let
-      val line = valOf $ TIO.inputLine strm
-    in
-      if String.isPrefix "  %% START" line
-      then strm
-      else (write line; copyBeforeProof strm)
-    end
+    if TIO.endOfStream strm
+    then (print "End of stream\n"; ())
+    else
+      case TIO.inputLine strm of
+        SOME line =>
+          (if String.isPrefix "  %% START" line
+          then (writeLn "%% STARTING GENERATING CODE"; ())
+          else (write line; copyBeforeProof strm))
+      | NONE => print "Could not copy before proof.\n"
 
   fun copyAfterProof strm =
     if TIO.endOfStream strm
-    then ()
+    then (TIO.closeIn strm; ())
     else (write o valOf o TIO.inputLine $ strm;
           copyAfterProof strm)
 
@@ -46,24 +48,28 @@ structure LaTeXGen = struct
     | ruleName ImplL     = "\\supset L"
 
 
-  fun genZeroInf r P =
-    write $ "\\infer0[" ^ ruleName r ^ "]{" ^ Syntax.pretty P ^ "}"
+  fun genInf 0 r A =
+        writeLn $ "\\infer0[" ^ ruleName r ^ "]{" ^ Syntax.pretty A ^ "}"
+    | genInf n r _ =
+        writeLn $ "\\infer" ^ Int.toString n ^ "[" ^ ruleName r ^ "]{" ^ "TODO" ^ "}"
 
-  fun genLaTeX (ZeroInf (r, A)) = genZeroInf r A
-    | genLaTeX _ = raise Fail "genLaTeX TODO"
+  fun genProof (ZeroInf (r, A)) = genInf 0 r A
+    | genProof (OneInf (r, d)) = (genProof d; genInf 1 r TOP)
+    | genProof (TwoInf (r, d1, d2)) = (genProof d1; genProof d2; genInf 2 r TOP)
+    | genProof _ = raise Fail "genProof TODO"
 
   local
     open TextIO
   in
-    val _ =
+    fun generate drv =
       let
-        val strm = copyBeforeProof preamble
+        val preamble = TextIO.openIn "resources/preamble.tex"
+        val _ = print o valOf $ TIO.inputLine preamble
+        val _ = copyBeforeProof preamble
       in
-        (print o valOf o inputLine $ strm;
-        (* Write the proof here. *)
-        write "foo\n";
-        write "bar\n";
-        copyAfterProof strm)
+        ((* Write the proof here. *)
+        genProof drv;
+        copyAfterProof preamble)
       end
   end
 
