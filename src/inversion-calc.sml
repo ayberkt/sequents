@@ -42,7 +42,7 @@ structure InvCalc = struct
   datatype derivation =
       Goal of sequent
     | ZeroInf of rule * prop
-    | OneInf of rule * derivation
+    | OneInf of rule * derivation * prop
     | TwoInf of rule * derivation * derivation
     | Switch of rule * derivation
 
@@ -51,7 +51,7 @@ structure InvCalc = struct
 
   fun justified (Goal _) = false
     | justified (ZeroInf (_, _)) = true
-    | justified (OneInf (_, d')) = justified d'
+    | justified (OneInf (_, d', _)) = justified d'
     | justified (TwoInf (_, d1, d2)) = justified d1 andalso justified d2
     | justified (Switch (_, d')) = justified d'
 
@@ -61,7 +61,7 @@ structure InvCalc = struct
     (* If an atomic formula is encountered in a right-decomposition sequent we
        simply need to verify that it occurs in Γ. *)
     fun tryDisjR rule G p =
-      let val candidate = OneInf (rule, rightInv (G || []) p)
+      let val candidate = OneInf (rule, rightInv (G || []) p, p)
       in if justified candidate then SOME candidate else NONE end
     and tryImplL [] r = NONE
       | tryImplL G r =
@@ -90,7 +90,7 @@ structure InvCalc = struct
       (* If P ∈ Γ then we can just use initR once to conclude our proof. *)
       then ZeroInf (InitR, P)
       (* If P ∉ Γ we switch to left-inversion on P. *)
-      else OneInf (AtomRtoL, leftInv $ G || O $ P)
+      else OneInf (AtomRtoL, leftInv $ G || O $ P, P)
     and rightInv ctx (ATOM p) = handleRightAtomic ctx (ATOM p)
         (* Decompose `p CONJ q` to the task of decomposing p and decomposing q*)
       | rightInv ctx (p CONJ q) = TwoInf (ConjR, rightInv ctx p, rightInv ctx q)
@@ -98,21 +98,21 @@ structure InvCalc = struct
       | rightInv _ TOP = ZeroInf (TopR, TOP)
         (* Extend Ω with A and decompose B on the right with that context. *)
         (* Rule: ⊃R. *)
-      | rightInv (G || O) (A IMPL B) = OneInf (ImplR, rightInv $ G || (A::O) $ B)
+      | rightInv (G || O) (A IMPL B) = OneInf (ImplR, rightInv $ G || (A::O) $ B, A IMPL B)
         (* If we encounter disjunction or falsehood, we punt and switch to left
          * inversion. *)
       | rightInv (G || O) (A DISJ B) =
-          OneInf (DisjRtoL, leftInv $ G || O $ A DISJ B)
-      | rightInv (G || O) BOT = OneInf (BotRtoL, leftInv $ G || O $ BOT)
+          OneInf (DisjRtoL, leftInv $ G || O $ A DISJ B, A DISJ B)
+      | rightInv (G || O) BOT = OneInf (BotRtoL, leftInv $ G || O $ BOT, BOT)
     and handleLeftAtomic (G || (P::O)) C =
           (* If P = C, we have C contained in Ω hence are done. *)
           (* Otherwise we move P into Γ and continue. *)
-          if P = C then ZeroInf (InitL, P) else OneInf (AtomShift, leftInv ((P::G) || O) C)
+          if P = C then ZeroInf (InitL, P) else OneInf (AtomShift, leftInv ((P::G) || O) C, C)
      | handleLeftAtomic (_ || _) _ = raise Fail "impossible case in handleLeftAtomic"
     and leftInv (G || ((ATOM P)::O)) C = handleLeftAtomic (G || ((ATOM P)::O)) C
         (* If there is an A ∧ B at the end of Ω, perform left inversion with
          * Γ; Ω, A, B with the same succedent. *)
-      | leftInv (G || (A CONJ B::O)) C = OneInf (ConjL, leftInv $ G || (A::B::O) $ C)
+      | leftInv (G || (A CONJ B::O)) C = OneInf (ConjL, leftInv $ G || (A::B::O) $ C, C)
         (* If there is an A ∨ B at the end of Ω, we need to prove C with both
          * A at the end of Ω and B at the end of Ω. *)
       | leftInv (G || (A DISJ B::O)) r =
@@ -121,20 +121,20 @@ structure InvCalc = struct
           in TwoInf (DisjL, goal1, goal2) end
         (* If there is a ⊤ at the right of Ω just get rid of that and continue
          * the left-inversion. *)
-      | leftInv (G || (TOP::O)) r = OneInf (TopL, leftInv $ G || O $ r)
+      | leftInv (G || (TOP::O)) C = OneInf (TopL, leftInv $ G || O $ C, C)
         (* If there is a ⊥ at the right of Ω we can prove C regardless of
          * whatever it is by using ⊥L. *)
       | leftInv (G || (BOT::O)) r = ZeroInf (BotL, BOT)
       | leftInv (G || (A IMPL B::O)) C =
-          OneInf (ImplShift, leftInv $ (A IMPL B::G) || O $ C)
+          OneInf (ImplShift, leftInv $ (A IMPL B::G) || O $ C, C)
       | leftInv (G || []) (A DISJ B) =
           (case (tryDisjR DisjR1 G A, tryDisjR DisjR2 G A) of
-            (SOME d1, _)  => OneInf (DisjR1, d1)
-          | (_, SOME d2)  => OneInf (DisjR2, d2)
+            (SOME d1, _)  => OneInf (DisjR1, d1, A DISJ B)
+          | (_, SOME d2)  => OneInf (DisjR2, d2, A DISJ B)
           | (_, _)  => raise NoProof)
       | leftInv (G || []) C =
           (case tryImplL G C of
-            SOME d1 => OneInf (ImplL, d1)
+            SOME d1 => OneInf (ImplL, d1, C)
           | NONE => raise NoProof)
   in
     fun prove p =

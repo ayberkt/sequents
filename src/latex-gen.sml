@@ -52,20 +52,18 @@ structure LaTeXGen = struct
   end
 
   fun genProp (ATOM P) = P
-    | genProp (CONJ (A, B)) = (genProp A) ^ " \\wedge " ^ (genProp A)
-    | genProp (DISJ (A, B)) = (genProp A) ^ " \\vee " ^ (genProp A)
-    | genProp (IMPL (A, B)) = (genProp A) ^ " \\supset " ^ (genProp A)
+    | genProp (CONJ (A, B)) = (genProp A) ^ " \\wedge " ^ (genProp B)
+    | genProp (DISJ (A, B)) = (genProp A) ^ " \\vee " ^ (genProp B)
+    | genProp (IMPL (A, B)) = (genProp A) ^ " \\supset " ^ (genProp B)
     | genProp TOP = "\\top"
     | genProp BOT = "\\bot"
 
 
-  fun genInf 0 r A =
-        writeLn $ "\\infer0[$" ^ ruleName r ^ "$]{" ^ genProp A ^ "}"
-    | genInf n r _ =
-        writeLn $ "\\infer" ^ Int.toString n ^ "[$" ^ ruleName r ^ "$]{" ^ "TODO" ^ "}"
+  fun genInf n r A =
+        writeLn $ "\\infer" ^ Int.toString n ^ "[$" ^ ruleName r ^ "$]{\\sequent{" ^ genProp A ^ "}}"
 
   fun genProof (ZeroInf (r, A)) = genInf 0 r A
-    | genProof (OneInf (r, d)) = (genProof d; genInf 1 r TOP)
+    | genProof (OneInf (r, d, A)) = (genProof d; genInf 1 r A)
     | genProof (TwoInf (r, d1, d2)) = (genProof d1; genProof d2; genInf 2 r TOP)
     | genProof _ = raise Fail "genProof TODO"
 
