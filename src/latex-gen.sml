@@ -44,17 +44,11 @@ structure LaTeXGen = struct
       | ruleName' ImplR     = "\\supset R"
       | ruleName' InitR     = "\\mathsf{init}"
       | ruleName' InitL     = "\\mathsf{init}"
-      | ruleName' AtomRtoL  = "\\mathsf{LR}_P"
-      | ruleName' DisjRtoL  = "\\mathsf{LR}_\\vee"
-      | ruleName' TopRtoL   = "\\mathsf{LR}_\\top"
       | ruleName' DisjL     = "\\vee L"
       | ruleName' DisjR1    = "\\vee R_1"
       | ruleName' DisjR2    = "\\vee R_2"
-      | ruleName' AtomShift = "\\mathsf{shift}_P"
-      | ruleName' ImplShift = "\\mathsf{shift}_\\supset"
       | ruleName' TopL      = "\\top L"
       | ruleName' BotL      = "\\bot L"
-      | ruleName' BotRtoL   = "\\mathsf{LR}_\\bot"
       | ruleName' ImplL     = "\\supset L"
   in
     fun ruleName r = "\\rlname{" ^ ruleName' r ^ "}"
@@ -72,7 +66,8 @@ structure LaTeXGen = struct
     | intersperse y (x::xs)=x::y::(intersperse y xs)
 
   local
-    fun showProps PS = String.concat o (intersperse ", ") $ genProp <$> PS
+    open String
+    fun showProps PS = concat o (intersperse ", ") $ genProp <$> PS
   in
     fun mkCtx ([] || []) = ""
       | mkCtx (G  || []) = (showProps G) ^ "; \\cdot"
@@ -90,7 +85,7 @@ structure LaTeXGen = struct
 
   fun genDrv (ZeroInf (r, seq)) = writeLn $ mkInfer 0 r seq
     | genDrv (OneInf (r, d, seq)) = (genDrv d; writeLn $ mkInfer 1 r seq)
-    | genDrv (TwoInf (r, d1, d2, A)) = (genDrv d1; genDrv d2; writeLn $ mkInfer 2 r ([] || [] SeqR BOT))
+    | genDrv (TwoInf (r, d1, d2, seq)) = (genDrv d1; genDrv d2; writeLn $ mkInfer 2 r seq)
     | genDrv _ = raise Fail "genDrv TODO"
 
   local

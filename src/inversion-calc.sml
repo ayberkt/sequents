@@ -26,25 +26,18 @@ structure InvCalc = struct
     | ImplR
     | InitR
     | InitL
-    | AtomRtoL
-    | DisjRtoL
-    | TopRtoL
     | DisjL
     | DisjR1
     | DisjR2
-    | AtomShift
-    | ImplShift
     | TopL
     | BotL
-    | BotRtoL
     | ImplL
 
   datatype derivation =
       Goal of sequent
     | ZeroInf of rule * sequent
     | OneInf of rule * derivation * sequent
-    | TwoInf of rule * derivation * derivation * prop
-    | Switch of rule * derivation
+    | TwoInf of rule * derivation * derivation * sequent
 
   infixr 5 mem
   fun x mem xs = List.exists (fn y => x = y) xs
@@ -53,7 +46,6 @@ structure InvCalc = struct
     | justified (ZeroInf (_, _)) = true
     | justified (OneInf (_, d', _)) = justified d'
     | justified (TwoInf (_, d1, d2, _)) = justified d1 andalso justified d2
-    | justified (Switch (_, d')) = justified d'
 
   exception NoProof
 
@@ -74,7 +66,7 @@ structure InvCalc = struct
                 let
                   val d1 = rightInv $ (p IMPL q::G) || [] $ r
                   val d2 = rightInv $ G || [q] $ r
-                  val candidate = TwoInf (ImplL, d1, d2, p IMPL q)
+                  val candidate = TwoInf (ImplL, d1, d2, G || [] SeqL p IMPL q)
                 in
                   if justified candidate
                   then SOME candidate
@@ -92,11 +84,11 @@ structure InvCalc = struct
     (* If P ∈ Γ then we can just use initR once to conclude our proof. *)
     then ZeroInf (InitR, G || O SeqR P)
     (* If P ∉ Γ we switch to left-inversion on P. *)
-    else OneInf (AtomRtoL, leftInv $ G || O $ P, G || O SeqR P)
+    else leftInv $ G || O $ P
 
   and rightInv ctx (ATOM p) = handleRightAtomic ctx (ATOM p)
       (* Decompose `p CONJ q` to the task of decomposing p and decomposing q*)
-    | rightInv ctx (p CONJ q) = TwoInf (ConjR, rightInv ctx p, rightInv ctx q, p CONJ q)
+    | rightInv ctx (p CONJ q) = TwoInf (ConjR, rightInv ctx p, rightInv ctx q, ctx SeqL (p CONJ q))
       (* ⊤ cannot be decomposed further, end proof by ⊤R. *)
     | rightInv ctx TOP = ZeroInf (TopR, ctx SeqR TOP)
       (* Extend Ω with A and decompose B on the right with that context. *)
@@ -104,15 +96,14 @@ structure InvCalc = struct
     | rightInv (G || O) (A IMPL B) = OneInf (ImplR, rightInv $ G || (A::O) $ B, G || O SeqR (A IMPL B))
       (* If we encounter disjunction or falsehood, we punt and switch to left
        * inversion. *)
-    | rightInv (G || O) (A DISJ B) =
-        OneInf (DisjRtoL, leftInv $ G || O $ A DISJ B, G || O SeqR (A DISJ B))
-    | rightInv (G || O) BOT = OneInf (BotRtoL, leftInv $ G || O $ BOT, G || O SeqR BOT)
+    | rightInv (G || O) (A DISJ B) = leftInv $ G || O $ A DISJ B
+    | rightInv (G || O) BOT = leftInv $ G || O $ BOT
   and handleLeftAtomic (G || (P::O)) C =
         (* If P = C, we have C contained in Ω hence are done. *)
         (* Otherwise we move P into Γ and continue. *)
         if P = C
         then ZeroInf (InitL, G || (P::O) SeqR P)
-        else OneInf (AtomShift, leftInv ((P::G) || O) C, G || (P::O) SeqL C)
+        else leftInv ((P::G) || O) C
    | handleLeftAtomic (_ || _) _ = raise Fail "impossible case in handleLeftAtomic"
   and leftInv (G || ((ATOM P)::O)) C = handleLeftAtomic (G || ((ATOM P)::O)) C
       (* If there is an A ∧ B at the end of Ω, perform left inversion with
@@ -123,15 +114,14 @@ structure InvCalc = struct
     | leftInv (G || (A DISJ B::O)) C =
         let
           val (goal1, goal2) = (leftInv $ G || (A::O) $ C, leftInv $ G || (B::O) $ C)
-        in TwoInf (DisjL, goal1, goal2, C) end
+        in TwoInf (DisjL, goal1, goal2, (G || (A DISJ B::O)) SeqL C) end
       (* If there is a ⊤ at the right of Ω just get rid of that and continue
        * the left-inversion. *)
     | leftInv (G || (TOP::O)) C = OneInf (TopL, leftInv $ G || O $ C, (G || (TOP::O)) SeqL C)
       (* If there is a ⊥ at the right of Ω we can prove C regardless of
        * whatever it is by using ⊥L. *)
     | leftInv (G || (BOT::O)) r = ZeroInf (BotL, G || (BOT::O) SeqL BOT)
-    | leftInv (G || (A IMPL B::O)) C =
-        OneInf (ImplShift, leftInv $ (A IMPL B::G) || O $ C, G || (A IMPL B::O) SeqL C)
+    | leftInv (G || (A IMPL B::O)) C = leftInv $ (A IMPL B::G) || O $ C
     | leftInv (G || []) (A DISJ B) =
         (case (tryDisjR DisjR1 G A, tryDisjR DisjR2 G A) of
           (SOME d1, _)  => OneInf (DisjR1, d1, G || [] SeqL (A DISJ B))
