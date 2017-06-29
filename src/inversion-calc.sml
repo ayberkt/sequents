@@ -20,18 +20,11 @@ structure InvCalc = struct
   infixr 4 SeqR
 
   datatype rule =
-      ConjR
-    | ConjL
-    | TopR
-    | ImplR
-    | InitR
-    | InitL
-    | DisjL
-    | DisjR1
-    | DisjR2
-    | TopL
-    | BotL
-    | ImplL
+      ConjR | ConjL  | TopR
+    | ImplR | ImplL
+    | InitR | InitL
+    | DisjL | DisjR1 | DisjR2
+    | TopL  | BotL
 
   datatype derivation =
       Goal of sequent
@@ -52,8 +45,7 @@ structure InvCalc = struct
     (* If an atomic formula is encountered in a right-decomposition sequent we
        simply need to verify that it occurs in Γ. *)
   fun tryDisjR rule G P =
-    case rightInv $ G || [] $ P of
-      drv => SOME $ OneInf (rule, rightInv $ G || [] $ P, G || [] SeqL P)
+    SOME $ OneInf (rule, rightInv $ G || [] $ P, G || [] SeqL P)
     handle NoProof => NONE
 
   and tryImplL [] r = NONE
