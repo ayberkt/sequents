@@ -9,6 +9,16 @@ structure Main = struct
   infixr 4 SeqR
   infix 5 ||
 
+  datatype flags =
+    Flags of { shouldGenLaTeX : bool }
+
+  val defaultFlgs = Flags { shouldGenLaTeX = false }
+
+  fun parseArgs flgs [] = flgs
+    | parseArgs flgs ("--latex"::rest) = parseArgs (Flags { shouldGenLaTeX = true} ) rest
+    | parseArgs flgs (_::rest) = parseArgs flgs rest
+
+
   local
     fun printLn s = print (s ^ "\n")
     open PropLrVals
@@ -16,9 +26,13 @@ structure Main = struct
     fun main (arg0, argv) =
       let
         val prop = Parser.parse o valOf $ TextIO.inputLine TextIO.stdIn
+        val Flags { shouldGenLaTeX } = parseArgs defaultFlgs argv
       in
         case prove prop of
-          SOME drv => (generate drv; 0)
+          SOME drv =>
+            (if shouldGenLaTeX
+             then generate drv
+             else printLn "Proof found!"; 0)
         | NONE => (printLn "No proof found"; 1)
       end
   end
