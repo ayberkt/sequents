@@ -2,3 +2,4 @@ src/.cm
 *.x86-darwin
 out.*
 texput.log
+test/.cm

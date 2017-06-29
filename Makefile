@@ -1,5 +1,8 @@
-all:
+main:
 	sml -m main.cm
+
+tests:
+	sml -m test.cm > /dev/null
 
 clean:
 	rm sequent.x86-darwin
