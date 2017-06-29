@@ -69,19 +69,14 @@ structure LaTeXGen = struct
     open String
     fun showProps PS = concat o (intersperse ", ") $ genProp <$> PS
   in
-    fun mkCtx ([] || []) = ""
-      | mkCtx (G  || []) = (showProps G) ^ "; \\cdot"
-      | mkCtx ([] || O)  = "\\cdot ; " ^ (showProps O)
-      | mkCtx (G  || O) = (showProps G) ^ "; " ^ (showProps O)
+    fun mkCtx (G  || O) = showProps $ G @ O
   end
 
-  fun mkSequent (CTX SeqR C) =
-        (mkCtx CTX) ^ "\\Longrightarrow_R" ^ (genProp C)
-    | mkSequent (CTX SeqL C) =
-        (mkCtx CTX) ^ "\\Longrightarrow_L" ^ (genProp C)
+  fun mkSequent (CTX SeqR C) = (mkCtx CTX) ^ " \\Longrightarrow " ^ (genProp C)
+    | mkSequent (CTX SeqL C) = (mkCtx CTX) ^ " \\Longrightarrow " ^ (genProp C)
 
   fun mkInfer n rname seq =
-    "\\infer" ^ Int.toString n ^ "[$" ^ ruleName rname ^ "$]{" ^ mkSequent seq ^ "}"
+    "\\infer" ^ Int.toString n ^ "[$" ^ ruleName rname ^ "$]{ " ^ mkSequent seq ^ " }"
 
   fun genDrv (ZeroInf (r, seq)) = writeLn $ mkInfer 0 r seq
     | genDrv (OneInf (r, d, seq)) = (genDrv d; writeLn $ mkInfer 1 r seq)
