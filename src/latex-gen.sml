@@ -76,7 +76,10 @@ structure LaTeXGen = struct
     | mkSequent (CTX SeqL C) = (mkCtx CTX) ^ " \\Longrightarrow " ^ (genProp C)
 
   fun mkInfer n rname seq =
-    "\\infer" ^ Int.toString n ^ "[$" ^ ruleName rname ^ "$]{ " ^ mkSequent seq ^ " }"
+    "\\infer" ^ Int.toString n ^
+      "[$" ^ ruleName rname ^ "$]" ^ (* The rule name. *)
+       (* The proposition that is being inferred. *)
+      "{"  ^ mkSequent seq  ^  "}"
 
   fun genDrv (ZeroInf (r, seq)) = writeLn $ mkInfer 0 r seq
     | genDrv (OneInf (r, d, seq)) = (genDrv d; writeLn $ mkInfer 1 r seq)
