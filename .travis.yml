@@ -4,6 +4,7 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -y --force-yes smlnj
 
+
 script:
   - make
   - ./test.sh
