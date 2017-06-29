@@ -7,4 +7,5 @@ before_install:
 
 script:
   - make tests
+  - ls
   - sml @SMLload=test
