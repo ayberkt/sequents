@@ -67,10 +67,6 @@ structure LaTeXGen = struct
     | genProp TOP = "\\top"
     | genProp BOT = "\\bot"
 
-
-  fun genInf n r A =
-        writeLn $ "\\infer" ^ Int.toString n ^ "[$" ^ ruleName r ^ "$]{\\sequent{" ^ genProp A ^ "}}"
-
   fun intersperse y [] = []
     | intersperse y [x] = [x]
     | intersperse y (x::xs)=x::y::(intersperse y xs)
@@ -92,11 +88,9 @@ structure LaTeXGen = struct
   fun mkInfer n rname seq =
     "\\infer" ^ Int.toString n ^ "[$" ^ ruleName rname ^ "$]{" ^ mkSequent seq ^ "}"
 
-  fun genDrv (ZeroInf (r, A)) = genInf 0 r A
-    | genDrv (OneInf (ConjR, d, G || (A::O) SeqR C)) = genInf 2 ConjR C
-    | genDrv (OneInf (r, d, seq)) =
-        (genDrv d; writeLn $ mkInfer 1 r seq)
-    | genDrv (TwoInf (r, d1, d2, A)) = (genDrv d1; genDrv d2; genInf 2 r A)
+  fun genDrv (ZeroInf (r, seq)) = writeLn $ mkInfer 0 r seq
+    | genDrv (OneInf (r, d, seq)) = (genDrv d; writeLn $ mkInfer 1 r seq)
+    | genDrv (TwoInf (r, d1, d2, A)) = (genDrv d1; genDrv d2; writeLn $ mkInfer 2 r ([] || [] SeqR BOT))
     | genDrv _ = raise Fail "genDrv TODO"
 
   local

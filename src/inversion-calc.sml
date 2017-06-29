@@ -41,7 +41,7 @@ structure InvCalc = struct
 
   datatype derivation =
       Goal of sequent
-    | ZeroInf of rule * prop
+    | ZeroInf of rule * sequent
     | OneInf of rule * derivation * sequent
     | TwoInf of rule * derivation * derivation * prop
     | Switch of rule * derivation
@@ -90,7 +90,7 @@ structure InvCalc = struct
   and handleRightAtomic (G || O) P =
     if P mem G
     (* If P ∈ Γ then we can just use initR once to conclude our proof. *)
-    then ZeroInf (InitR, P)
+    then ZeroInf (InitR, G || O SeqR P)
     (* If P ∉ Γ we switch to left-inversion on P. *)
     else OneInf (AtomRtoL, leftInv $ G || O $ P, G || O SeqR P)
 
@@ -98,7 +98,7 @@ structure InvCalc = struct
       (* Decompose `p CONJ q` to the task of decomposing p and decomposing q*)
     | rightInv ctx (p CONJ q) = TwoInf (ConjR, rightInv ctx p, rightInv ctx q, p CONJ q)
       (* ⊤ cannot be decomposed further, end proof by ⊤R. *)
-    | rightInv _ TOP = ZeroInf (TopR, TOP)
+    | rightInv ctx TOP = ZeroInf (TopR, ctx SeqR TOP)
       (* Extend Ω with A and decompose B on the right with that context. *)
       (* Rule: ⊃R. *)
     | rightInv (G || O) (A IMPL B) = OneInf (ImplR, rightInv $ G || (A::O) $ B, G || O SeqR (A IMPL B))
@@ -110,7 +110,9 @@ structure InvCalc = struct
   and handleLeftAtomic (G || (P::O)) C =
         (* If P = C, we have C contained in Ω hence are done. *)
         (* Otherwise we move P into Γ and continue. *)
-        if P = C then ZeroInf (InitL, P) else OneInf (AtomShift, leftInv ((P::G) || O) C, G || (P::O) SeqL C)
+        if P = C
+        then ZeroInf (InitL, G || (P::O) SeqR P)
+        else OneInf (AtomShift, leftInv ((P::G) || O) C, G || (P::O) SeqL C)
    | handleLeftAtomic (_ || _) _ = raise Fail "impossible case in handleLeftAtomic"
   and leftInv (G || ((ATOM P)::O)) C = handleLeftAtomic (G || ((ATOM P)::O)) C
       (* If there is an A ∧ B at the end of Ω, perform left inversion with
@@ -127,7 +129,7 @@ structure InvCalc = struct
     | leftInv (G || (TOP::O)) C = OneInf (TopL, leftInv $ G || O $ C, (G || (TOP::O)) SeqL C)
       (* If there is a ⊥ at the right of Ω we can prove C regardless of
        * whatever it is by using ⊥L. *)
-    | leftInv (G || (BOT::O)) r = ZeroInf (BotL, BOT)
+    | leftInv (G || (BOT::O)) r = ZeroInf (BotL, G || (BOT::O) SeqL BOT)
     | leftInv (G || (A IMPL B::O)) C =
         OneInf (ImplShift, leftInv $ (A IMPL B::G) || O $ C, G || (A IMPL B::O) SeqL C)
     | leftInv (G || []) (A DISJ B) =

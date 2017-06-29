@@ -1,0 +1,36 @@
+\documentclass{article}
+\usepackage{ebproof}
+\usepackage{mathpazo}
+\usepackage{xparse}
+
+\newcommand{\prp}[1]{#1}
+
+\NewDocumentCommand \sequent { o o m }{
+  \IfNoValueTF{#2}{
+    \IfNoValueTF{#1}{
+      \Gamma^-; \Omega \longrightarrow {\prp{#3}}
+    }{
+      \Gamma^-; \Omega , {\prp{#1}} \longrightarrow {\prp{#3}}
+    }
+  }{
+    \Gamma^-; \Omega , {\prp{#1}}, {\prp{#2}} \longrightarrow {\prp{#3}}
+  }
+}
+
+\newcommand{\rlname}[1]{\mathsf{#1}}
+
+\begin{document}
+\begin{prooftree}
+  %% STARTING GENERATING CODE
+  \infer0[$\rlname{\mathsf{init}}$]{A; B\Longrightarrow_RB}
+  \infer1[$\rlname{\mathsf{shift}_P}$]{\cdot ; A, B\Longrightarrow_LB}
+  \infer1[$\rlname{\wedge L}$]{\cdot ; A \wedge B\Longrightarrow_LB}
+  \infer1[$\rlname{\mathsf{LR}_P}$]{\cdot ; A \wedge B\Longrightarrow_RB}
+  \infer0[$\rlname{\mathsf{init}}$]{\cdot ; A, B\Longrightarrow_RA}
+  \infer1[$\rlname{\wedge L}$]{\cdot ; A \wedge B\Longrightarrow_LA}
+  \infer1[$\rlname{\mathsf{LR}_P}$]{\cdot ; A \wedge B\Longrightarrow_RA}
+  \infer2[$\rlname{\wedge R}$]{\Longrightarrow_R\bot}
+  \infer1[$\rlname{\supset R}$]{\Longrightarrow_RA \wedge B \supset B \wedge A}
+  %% END OF GENERATED CODE.
+\end{prooftree}
+\end{document}
