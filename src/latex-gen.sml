@@ -2,6 +2,11 @@ structure LaTeXGen = struct
   open InvCalc
   structure TIO = TextIO
 
+  infixr 5 ||
+  infixr 4 SeqL
+  infixr 4 SeqR
+  infixr 6 CONJ
+
   fun $ (f, x) = f x
   infix 0 $
 
@@ -52,7 +57,7 @@ structure LaTeXGen = struct
   end
 
   fun genProp (ATOM P) = P
-    | genProp (CONJ (A, B)) = (genProp A) ^ " \\wedge " ^ (genProp B)
+    | genProp (A CONJ B) = (genProp A) ^ " \\wedge " ^ (genProp B)
     | genProp (DISJ (A, B)) = (genProp A) ^ " \\vee " ^ (genProp B)
     | genProp (IMPL (A, B)) = (genProp A) ^ " \\supset " ^ (genProp B)
     | genProp TOP = "\\top"
@@ -63,7 +68,12 @@ structure LaTeXGen = struct
         writeLn $ "\\infer" ^ Int.toString n ^ "[$" ^ ruleName r ^ "$]{\\sequent{" ^ genProp A ^ "}}"
 
   fun genDrv (ZeroInf (r, A)) = genInf 0 r A
-    | genDrv (OneInf (r, d, A)) = (genDrv d; genInf 1 r A)
+    | genDrv (OneInf (ConjR, d, G || (A::O) SeqR C)) = genInf 2 ConjR C
+    | genDrv (OneInf (ConjL, d, G || (A::O) SeqL C)) =
+        (genDrv d;
+         writeLn $ "\\infer1[$\\wedge L$]{\\sequent[" ^ genProp A ^ "]{" ^ genProp C ^ "}}")
+    | genDrv (OneInf (r, d, G || O SeqL A)) = (genDrv d; genInf 1 r A)
+    | genDrv (OneInf (r, d, G || O SeqR A)) = (genDrv d; genInf 1 r A)
     | genDrv (TwoInf (r, d1, d2, A)) = (genDrv d1; genDrv d2; genInf 2 r A)
     | genDrv _ = raise Fail "genDrv TODO"
 
