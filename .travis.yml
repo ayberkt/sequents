@@ -6,5 +6,5 @@ before_install:
 
 
 script:
-  - make
-  - ./test.sh
+  - make tests
+  - sml @SMLload=test
