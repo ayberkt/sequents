@@ -2,7 +2,7 @@ main:
 	sml -m src/main.cm
 
 tests:
-	sml -m test/test.cm > /dev/null
+	sml -m test/test.cm
 
 clean:
 	rm sequent.x86-darwin

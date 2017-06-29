@@ -5,7 +5,7 @@ structure Test = struct
   fun $ (f, x) = f x
   infix 0 $
 
-  val failCount = ref 0
+  val failCount : int ref = ref 0
 
   val inputs =
     [
@@ -16,9 +16,11 @@ structure Test = struct
     , ("T /\\ T", true)
     , ("T /\\ (T /\\ T)", true)
     , ("(T /\\ T) /\\ T", true)
+    (*, ("(A \\/ B) => (B \\/ A)", true)*)
 
     , ("F", false)
     , ("A => F", false)
+    , ("A /\\ B => A /\\ B /\\ C", false)
     ]
 
   fun test [] = ()
@@ -35,7 +37,9 @@ structure Test = struct
 
   fun main (arg0, argv) =
     (test inputs;
-     if !failCount = 0 then 0 else 1)
+     if !failCount = 0
+     then 0
+     else (print $ Int.toString (!failCount) ^ " tests failed.\n"; 1))
 
   val _ = SMLofNJ.exportFn ("test",  main)
 
