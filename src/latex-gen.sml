@@ -6,6 +6,7 @@ structure LaTeXGen = struct
   infixr 4 SeqL
   infixr 4 SeqR
   infixr 6 CONJ
+  infixr 6 DISJ
   infixr 6 IMPL
 
   fun $ (f, x) = f x
@@ -51,12 +52,25 @@ structure LaTeXGen = struct
     fun ruleName r = "\\rlname{" ^ ruleName' r ^ "}"
   end
 
-  fun genProp (ATOM P) = P
-    | genProp (A CONJ B) = (genProp A) ^ " \\wedge " ^ (genProp B)
-    | genProp (DISJ (A, B)) = (genProp A) ^ " \\vee " ^ (genProp B)
-    | genProp (A IMPL B) = (genProp A) ^ " \\supset " ^ (genProp B)
-    | genProp TOP = "\\top"
-    | genProp BOT = "\\bot"
+  local
+    fun genProp' (ATOM P) = P
+      | genProp' (A CONJ B) = (genProp' A) ^ " \\wedge " ^ (genProp' B)
+      | genProp' (A DISJ B) = (genProp' A) ^ " \\vee " ^ (genProp' B)
+      | genProp' (A IMPL B) = (genProp' A) ^ " \\supset " ^ (genProp' B)
+      | genProp' TOP = "\\top"
+      | genProp' BOT = "\\bot"
+    fun pars s = "(" ^ s ^ ")"
+  in
+    fun genProp (ATOM P) = P
+      | genProp ((ATOM A) DISJ (ATOM B)) = (genProp' (ATOM A)) ^ " \\vee " ^ (genProp' (ATOM B))
+      | genProp ((ATOM A) CONJ (ATOM B)) = (genProp' (ATOM A)) ^ " \\wedge " ^ (genProp' (ATOM B))
+      | genProp ((ATOM A) IMPL (ATOM B)) = (genProp' (ATOM A)) ^ " \\supset " ^ (genProp' (ATOM B))
+      | genProp (A CONJ B) = (pars $ genProp' A) ^ " \\wedge " ^ (pars $ genProp' B)
+      | genProp (A DISJ B) = (pars $ genProp' A) ^ " \\vee " ^ (pars $ genProp' B)
+      | genProp (A IMPL B) = (pars $ genProp' A) ^ " \\supset " ^ (pars $ genProp' B)
+      | genProp TOP = "\\top"
+      | genProp BOT = "\\bot"
+  end
 
   fun intersperse y [] = []
     | intersperse y [x] = [x]
