@@ -21,15 +21,12 @@ structure LaTeXGen = struct
   fun writeLn s = write $ "  " ^ s ^ "\n"
 
   fun copyBeforeProof strm =
-    if TIO.endOfStream strm
-    then (print "End of stream\n"; ())
-    else
-      case TIO.inputLine strm of
-        SOME line =>
-          (if String.isPrefix "  %% START" line
-          then (writeLn "%% STARTING GENERATING CODE"; ())
-          else (write line; copyBeforeProof strm))
-      | NONE => print "Could not copy before proof.\n"
+    case TIO.inputLine strm of
+      SOME line =>
+        (if String.isPrefix "  %% START" line
+        then (writeLn "%% STARTING GENERATING CODE"; ())
+        else (write line; copyBeforeProof strm))
+    | NONE => print "Could not copy before proof.\n"
 
   fun copyAfterProof strm =
     if TIO.endOfStream strm
