@@ -104,9 +104,9 @@ structure InvCalc = struct
     | leftInv (G || (BOT::O)) r = ZeroInf (BotL, G || (BOT::O) SeqL BOT)
     | leftInv (G || (A IMPL B::O)) C = leftInv $ (A IMPL B::G) || O $ C
     | leftInv (G || []) (A DISJ B) =
-        (case (tryDisjR DisjR1 G A, tryDisjR DisjR2 G A) of
-          (SOME d1, _)  => OneInf (DisjR1, d1, G || [] SeqL (A DISJ B))
-        | (_, SOME d2)  => OneInf (DisjR2, d2, G || [] SeqL (A DISJ B))
+        (case (tryDisjR DisjR1 G A, tryDisjR DisjR2 G B) of
+          (SOME d, _)  => OneInf (DisjR1, d, G || [] SeqL (A DISJ B))
+        | (_, SOME d)  => OneInf (DisjR2, d, G || [] SeqL (A DISJ B))
         | (_, _)  => raise NoProof)
     | leftInv (G || []) C =
         case tryImplL G C of
