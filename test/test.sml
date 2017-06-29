@@ -10,6 +10,7 @@ structure Test = struct
   val inputs =
     [
       ("A /\\ B => B /\\ A", true)
+    , ("((A /\\ B) => (B /\\ A)) /\\ ((B /\\ A) => (A /\\ B))", true)
     , ("T", true)
     , ("A => T", true)
     , ("A => B => C => (A => B)", true)
