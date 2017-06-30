@@ -8,6 +8,11 @@ structure InvCalc = struct
   fun <$> (f, xs) = L.map f xs
   infixr 1 <$>
 
+  fun <*> (_,  []) = []
+    | <*> ([], _ ) = []
+    | <*> ((x::xs), ys) = ((fn y => (x, y)) <$> ys) @ (<*>(xs, ys))
+  infix 2 <*>
+
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL
 
   datatype context = || of (prop list) * (prop list) infix 5 ||
@@ -40,17 +45,19 @@ structure InvCalc = struct
   and tryImplL [] _ = NONE
     | tryImplL G C =
         let
-          fun try (A IMPL B) =
+          fun try (A IMPL B, G') =
                 (let
-                  val D1 = rightInv $ (A IMPL B::G) || [] $ A
-                  val D2 = leftInv $ G || [B] $ C
+                  val D1 = rightInv $ (A IMPL B::G') || [] $ A
+                  val D2 = leftInv  $ G || [B] $ C
                 in
                   SOME $ TwoInf (ImplL, D1, D2, G || [] ===> A IMPL B)
                 end
                 handle NoProof => NONE)
-            | try p = NONE
+            | try (_, _) = NONE
+          val indices : int list = valOf <$> L.filter isSome (L.mapi (fn (i, x) => if isImpl x then SOME i else NONE) G)
+          fun mkCtx i = (fn (xs, ys) => (hd ys, xs @ (tl ys))) o L.splitAt $ (G, i)
         in
-          case L.filter isSome $ try <$> G of
+          case L.filter isSome (try <$> (mkCtx <$> indices)) of
             d::_ => d
           | [] => NONE
         end
@@ -110,11 +117,13 @@ structure InvCalc = struct
           SOME drv => OneInf (DisjR1, drv, G || [] ===> A DISJ B)
         | NONE => (case tryDisjR DisjR2 G B of
                      SOME drv => OneInf (DisjR2, drv, G || [] ===> A DISJ B)
-                   | NONE => raise NoProof))
+                   | NONE => case tryImplL G (A DISJ B) of
+                               SOME drv => drv
+                             | NONE => raise NoProof))
     | leftInv (G || []) C =
         (case tryImplL G C of
-          SOME D1 => OneInf (ImplL, D1, G || [] ===> C)
-        | NONE => raise NoProof)
+           SOME D1 => D1
+         | NONE => raise NoProof)
 
   fun prove A =
     SOME (rightInv $ [] || [] $ A)
