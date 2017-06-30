@@ -9,13 +9,26 @@ structure Main = struct
   infixr 4 SeqR
   infix 5 ||
 
-  datatype flags =
-    Flags of { shouldGenLaTeX : bool }
+  type flags = {
+    shouldGenLaTeX : bool,
+    outfile        : string option
+  }
 
-  val defaultFlgs = Flags { shouldGenLaTeX = false }
+  val defaultFlgs = {
+    shouldGenLaTeX = false,
+    outFile        = NONE
+  }
 
   fun parseArgs flgs [] = flgs
-    | parseArgs flgs ("--latex"::rest) = parseArgs (Flags { shouldGenLaTeX = true} ) rest
+    | parseArgs flgs ("--latex"::rest) =
+        parseArgs { shouldGenLaTeX = true, outFile = #outFile flgs } rest
+    | parseArgs flgs ("--out"::file::rest) =
+        let
+          val flgs' = {
+            shouldGenLaTeX = #shouldGenLaTeX flgs,
+            outFile = SOME file
+          }
+        in parseArgs flgs' rest end
     | parseArgs flgs (_::rest) = parseArgs flgs rest
 
 
@@ -26,11 +39,11 @@ structure Main = struct
     fun main (arg0, argv) =
       let
         val prop = Parser.parse o valOf $ TextIO.inputLine TextIO.stdIn
-        val Flags { shouldGenLaTeX } = parseArgs defaultFlgs argv
+        val flgs  = parseArgs defaultFlgs argv
       in
         case prove prop of
           SOME drv =>
-            (if shouldGenLaTeX
+            (if #shouldGenLaTeX flgs
              then generate drv
              else printLn "Proof found!"; 0)
         | NONE => (printLn "No proof found"; 1)
