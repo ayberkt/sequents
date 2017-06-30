@@ -1,5 +1,6 @@
 structure LaTeXGen = struct
   open InvCalc
+  structure U = Unparse
   structure TIO = TextIO
 
   infixr 5 ||
@@ -52,24 +53,17 @@ structure LaTeXGen = struct
     fun ruleName r = "\\rlname{" ^ ruleName' r ^ "}"
   end
 
+  fun propToItem (ATOM P) = U.atom P
+    | propToItem (A CONJ B) =
+        U.infix' (U.Non, 3, "\\wedge") (propToItem A, propToItem B)
+    | propToItem (A DISJ B) =
+        U.infix' (U.Non, 2, "\\vee") (propToItem A, propToItem B)
+    | propToItem (A IMPL B) =
+        U.infix' (U.Right, 1, "\\supset") (propToItem A, propToItem B)
+
   local
-    fun genProp' (ATOM P) = P
-      | genProp' (A CONJ B) = (genProp' A) ^ " \\wedge " ^ (genProp' B)
-      | genProp' (A DISJ B) = (genProp' A) ^ " \\vee " ^ (genProp' B)
-      | genProp' (A IMPL B) = (genProp' A) ^ " \\supset " ^ (genProp' B)
-      | genProp' TOP = "\\top"
-      | genProp' BOT = "\\bot"
-    fun pars s = "(" ^ s ^ ")"
   in
-    fun genProp (ATOM P) = P
-      | genProp ((ATOM A) DISJ (ATOM B)) = (genProp' (ATOM A)) ^ " \\vee " ^ (genProp' (ATOM B))
-      | genProp ((ATOM A) CONJ (ATOM B)) = (genProp' (ATOM A)) ^ " \\wedge " ^ (genProp' (ATOM B))
-      | genProp ((ATOM A) IMPL (ATOM B)) = (genProp' (ATOM A)) ^ " \\supset " ^ (genProp' (ATOM B))
-      | genProp (A CONJ B) = (pars $ genProp' A) ^ " \\wedge " ^ (pars $ genProp' B)
-      | genProp (A DISJ B) = (pars $ genProp' A) ^ " \\vee " ^ (pars $ genProp' B)
-      | genProp (A IMPL B) = (pars $ genProp' A) ^ " \\supset " ^ (pars $ genProp' B)
-      | genProp TOP = "\\top"
-      | genProp BOT = "\\bot"
+    fun genProp A = U.parens o U.done o propToItem $ A
   end
 
   fun intersperse y [] = []
@@ -105,8 +99,7 @@ structure LaTeXGen = struct
         val preamble = TextIO.openIn "resources/preamble.tex"
         val _ = copyBeforeProof preamble
       in
-        ((* Write the proof here. *)
-        genDrv drv;
+        (genDrv drv;
         copyAfterProof preamble;
         TextIO.closeOut out)
       end

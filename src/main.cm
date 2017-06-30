@@ -1,6 +1,7 @@
 Group is
   $/basis.cm
   $/ml-yacc-lib.cm
+  ../lib/sml-unparse/unparse.cm
   main.sml
   seq-calc.sml
   inversion-calc.sml
