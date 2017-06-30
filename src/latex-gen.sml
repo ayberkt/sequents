@@ -53,16 +53,11 @@ structure LaTeXGen = struct
   end
 
   fun mkItem (ATOM P) = U.atom P
-    | mkItem (A CONJ B) =
-        U.infix' (U.Non, 3, "\\wedge") (mkItem A, mkItem B)
-    | mkItem TOP =
-        U.atom "\\top"
-    | mkItem (A DISJ B) =
-        U.infix' (U.Non, 2, "\\vee") (mkItem A, mkItem B)
-    | mkItem BOT =
-        U.atom "\\bot"
-    | mkItem (A IMPL B) =
-        U.infix' (U.Right, 1, "\\supset") (mkItem A, mkItem B)
+    | mkItem (A CONJ B) = U.infix' (U.Non, 3, "\\wedge") (mkItem A, mkItem B)
+    | mkItem TOP = U.atom "\\top"
+    | mkItem (A DISJ B) = U.infix' (U.Non, 2, "\\vee") (mkItem A, mkItem B)
+    | mkItem BOT = U.atom "\\bot"
+    | mkItem (A IMPL B) = U.infix' (U.Right, 1, "\\supset") (mkItem A, mkItem B)
 
   val genProp = U.parens o U.done o mkItem
 

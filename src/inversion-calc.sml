@@ -1,9 +1,12 @@
 structure InvCalc = struct
+  structure L = List
   open Syntax
 
-  fun $ (f, x) = f x infix 0 $
+  fun $ (f, x) = f x
+  infix 0 $
 
-  fun <$> (f, xs) = List.map f xs infix 0 <$>
+  fun <$> (f, xs) = L.map f xs
+  infixr 1 <$>
 
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL
 
@@ -24,6 +27,8 @@ structure InvCalc = struct
     | OneInf  of rule * derivation * sequent
     | TwoInf  of rule * derivation * derivation * sequent
 
+  val isImpl = fn (_ IMPL _) => true | _ => false
+
   exception NoProof
 
   (* If an atomic formula is encountered in a right-decomposition sequent we
@@ -32,22 +37,20 @@ structure InvCalc = struct
     SOME $ OneInf (rule, rightInv $ G || [] $ P, G || [] ===> P)
     handle NoProof => NONE
 
-  and tryImplL [] r = NONE
-    | tryImplL G r =
+  and tryImplL [] _ = NONE
+    | tryImplL G C =
         let
-          val isImpl = fn (_ IMPL _) => true | _ => false
-          val impls = List.filter isImpl G
-          fun try (p IMPL q) =
+          fun try (A IMPL B) =
                 (let
-                  val D1 = rightInv $ (p IMPL q::G) || [] $ r
-                  val D2 = rightInv $ G || [q] $ r
+                  val D1 = rightInv $ (A IMPL B::G) || [] $ A
+                  val D2 = leftInv $ G || [B] $ C
                 in
-                  SOME $ TwoInf (ImplL, D1, D2, G || [] ===> p IMPL q)
+                  SOME $ TwoInf (ImplL, D1, D2, G || [] ===> A IMPL B)
                 end
                 handle NoProof => NONE)
-            | try _ = raise Fail "should not happen"
+            | try p = NONE
         in
-          case List.filter isSome (try <$> impls) of
+          case L.filter isSome $ try <$> G of
             d::_ => d
           | [] => NONE
         end
@@ -62,13 +65,13 @@ structure InvCalc = struct
   and rightInv ctx (ATOM p) = handleRightAtomic ctx (ATOM p)
       (* Decompose `p CONJ q` to the task of decomposing p and decomposing q*)
     | rightInv ctx (p CONJ q) =
-        TwoInf (ConjR, rightInv ctx p, rightInv ctx q, ctx ===> (p CONJ q))
+        TwoInf (ConjR, rightInv ctx p, rightInv ctx q, ctx ===> p CONJ q)
       (* ⊤ cannot be decomposed further, end proof by ⊤R. *)
     | rightInv ctx TOP = ZeroInf (TopR, ctx ===> TOP)
       (* Extend Ω with A and decompose B on the right with that context. *)
       (* Rule: ⊃R. *)
     | rightInv (G || O) (A IMPL B) =
-        OneInf (ImplR, rightInv $ G || (A::O) $ B, G || O ===> (A IMPL B))
+        OneInf (ImplR, rightInv $ G || (A::O) $ B, G || O ===> A IMPL B)
       (* If we encounter disjunction or falsehood, we punt and switch to left
        * inversion. *)
     | rightInv (G || O) (A DISJ B) = leftInv $ G || O $ A DISJ B
@@ -87,30 +90,31 @@ structure InvCalc = struct
        * Γ; Ω, A, B with the same succedent. *)
     | leftInv (G || (A CONJ B::O)) C =
         let val D' = leftInv $ G || (A::B::O) $ C
-        in OneInf (ConjL, D', G || ((A CONJ B)::O) ===> C) end
+        in OneInf (ConjL, D', G || (A CONJ B::O) ===> C) end
       (* If there is an A ∨ B at the end of Ω, we need to prove C with both
        * A at the end of Ω and B at the end of Ω. *)
     | leftInv (G || (A DISJ B::O)) C =
-        let val subG1 = leftInv $ G || (A::O) $ C
-            val subG2 = leftInv $ G || (B::O) $ C
-        in TwoInf (DisjL, subG1, subG2, (G || (A DISJ B::O)) ===> C) end
+        let val D1 = leftInv $ G || (A::O) $ C
+            val D2 = leftInv $ G || (B::O) $ C
+        in TwoInf (DisjL, D1, D2, (G || (A DISJ B::O)) ===> C) end
       (* If there is a ⊤ at the right of Ω just get rid of that and continue
        * the left-inversion. *)
     | leftInv (G || (TOP::O)) C =
-        OneInf (TopL, leftInv $ G || O $ C, (G || (TOP::O)) ===> C)
+        OneInf (TopL, leftInv $ G || O $ C, G || (TOP::O) ===> C)
       (* If there is a ⊥ at the right of Ω we can prove C regardless of
        * whatever it is by using ⊥L. *)
     | leftInv (G || (BOT::O)) r = ZeroInf (BotL, G || (BOT::O) ===> BOT)
     | leftInv (G || (A IMPL B::O)) C = leftInv $ (A IMPL B::G) || O $ C
     | leftInv (G || []) (A DISJ B) =
-        (case (tryDisjR DisjR1 G A, tryDisjR DisjR2 G B) of
-          (SOME d, _)  => OneInf (DisjR1, d, G || [] ===> (A DISJ B))
-        | (_, SOME d)  => OneInf (DisjR2, d, G || [] ===> (A DISJ B))
-        | (_, _)  => raise NoProof)
+        (case tryDisjR DisjR1 G A of
+          SOME drv => OneInf (DisjR1, drv, G || [] ===> A DISJ B)
+        | NONE => (case tryDisjR DisjR2 G B of
+                     SOME drv => OneInf (DisjR2, drv, G || [] ===> A DISJ B)
+                   | NONE => raise NoProof))
     | leftInv (G || []) C =
-        case tryImplL G C of
+        (case tryImplL G C of
           SOME D1 => OneInf (ImplL, D1, G || [] ===> C)
-        | NONE => raise NoProof
+        | NONE => raise NoProof)
 
   fun prove A =
     SOME (rightInv $ [] || [] $ A)
