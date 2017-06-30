@@ -61,10 +61,7 @@ structure LaTeXGen = struct
     | propToItem (A IMPL B) =
         U.infix' (U.Right, 1, "\\supset") (propToItem A, propToItem B)
 
-  local
-  in
-    fun genProp A = U.parens o U.done o propToItem $ A
-  end
+  fun genProp = U.parens o U.done o propToItem
 
   fun intersperse y [] = []
     | intersperse y [x] = [x]
