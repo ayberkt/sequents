@@ -4,8 +4,7 @@ structure LaTeXGen = struct
   structure TIO = TextIO
 
   infixr 5 ||
-  infixr 4 SeqL
-  infixr 4 SeqR
+  infixr 4 ===>
   infixr 6 CONJ
   infixr 6 DISJ
   infixr 6 IMPL
@@ -53,15 +52,19 @@ structure LaTeXGen = struct
     fun ruleName r = "\\rlname{" ^ ruleName' r ^ "}"
   end
 
-  fun propToItem (ATOM P) = U.atom P
-    | propToItem (A CONJ B) =
-        U.infix' (U.Non, 3, "\\wedge") (propToItem A, propToItem B)
-    | propToItem (A DISJ B) =
-        U.infix' (U.Non, 2, "\\vee") (propToItem A, propToItem B)
-    | propToItem (A IMPL B) =
-        U.infix' (U.Right, 1, "\\supset") (propToItem A, propToItem B)
+  fun mkItem (ATOM P) = U.atom P
+    | mkItem (A CONJ B) =
+        U.infix' (U.Non, 3, "\\wedge") (mkItem A, mkItem B)
+    | mkItem TOP =
+        U.atom "\\top"
+    | mkItem (A DISJ B) =
+        U.infix' (U.Non, 2, "\\vee") (mkItem A, mkItem B)
+    | mkItem BOT =
+        U.atom "\\bot"
+    | mkItem (A IMPL B) =
+        U.infix' (U.Right, 1, "\\supset") (mkItem A, mkItem B)
 
-  val genProp = U.parens o U.done o propToItem
+  val genProp = U.parens o U.done o mkItem
 
   fun intersperse y [] = []
     | intersperse y [x] = [x]
@@ -74,8 +77,7 @@ structure LaTeXGen = struct
     fun mkCtx (G  || O) = showProps $ G @ O
   end
 
-  fun mkSequent (CTX SeqR C) = (mkCtx CTX) ^ " \\Longrightarrow " ^ (genProp C)
-    | mkSequent (CTX SeqL C) = (mkCtx CTX) ^ " \\Longrightarrow " ^ (genProp C)
+  fun mkSequent (CTX ===> C) = (mkCtx CTX) ^ " \\Longrightarrow " ^ (genProp C)
 
   fun mkInfer n rname seq =
     "\\infer" ^ Int.toString n ^
@@ -86,7 +88,6 @@ structure LaTeXGen = struct
   fun genDrv (ZeroInf (r, seq)) = writeLn $ mkInfer 0 r seq
     | genDrv (OneInf (r, d, seq)) = (genDrv d; writeLn $ mkInfer 1 r seq)
     | genDrv (TwoInf (r, d1, d2, seq)) = (genDrv d1; genDrv d2; writeLn $ mkInfer 2 r seq)
-    | genDrv _ = raise Fail "genDrv TODO"
 
   local
     open TextIO

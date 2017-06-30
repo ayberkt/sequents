@@ -9,8 +9,8 @@ structure InvCalc = struct
 
   datatype context = || of (prop list) * (prop list) infix 5 ||
 
-  datatype sequent = SeqL of context * prop | SeqR of context * prop
-  infixr 4 SeqL infixr 4 SeqR
+  datatype sequent = ===> of context * prop
+  infixr 4 ===>
 
   datatype rule =
       ConjR | ConjL  | TopR
@@ -20,17 +20,16 @@ structure InvCalc = struct
     | TopL  | BotL
 
   datatype derivation =
-      Goal of sequent
-    | ZeroInf of rule * sequent
-    | OneInf of rule * derivation * sequent
-    | TwoInf of rule * derivation * derivation * sequent
+      ZeroInf of rule * sequent
+    | OneInf  of rule * derivation * sequent
+    | TwoInf  of rule * derivation * derivation * sequent
 
   exception NoProof
 
   (* If an atomic formula is encountered in a right-decomposition sequent we
      simply need to verify that it occurs in Γ. *)
   fun tryDisjR rule G P =
-    SOME $ OneInf (rule, rightInv $ G || [] $ P, G || [] SeqL P)
+    SOME $ OneInf (rule, rightInv $ G || [] $ P, G || [] ===> P)
     handle NoProof => NONE
 
   and tryImplL [] r = NONE
@@ -43,7 +42,7 @@ structure InvCalc = struct
                   val D1 = rightInv $ (p IMPL q::G) || [] $ r
                   val D2 = rightInv $ G || [q] $ r
                 in
-                  SOME $ TwoInf (ImplL, D1, D2, G || [] SeqL p IMPL q)
+                  SOME $ TwoInf (ImplL, D1, D2, G || [] ===> p IMPL q)
                 end
                 handle NoProof => NONE)
             | try _ = raise Fail "should not happen"
@@ -56,20 +55,20 @@ structure InvCalc = struct
   and handleRightAtomic (G || O) P =
     if List.exists (fn x => P = x) G
     (* If P ∈ Γ then we can just use initR once to conclude our proof. *)
-    then ZeroInf (InitR, G || O SeqR P)
+    then ZeroInf (InitR, G || O ===> P)
     (* If P ∉ Γ we switch to left-inversion on P. *)
     else leftInv $ G || O $ P
 
   and rightInv ctx (ATOM p) = handleRightAtomic ctx (ATOM p)
       (* Decompose `p CONJ q` to the task of decomposing p and decomposing q*)
     | rightInv ctx (p CONJ q) =
-        TwoInf (ConjR, rightInv ctx p, rightInv ctx q, ctx SeqL (p CONJ q))
+        TwoInf (ConjR, rightInv ctx p, rightInv ctx q, ctx ===> (p CONJ q))
       (* ⊤ cannot be decomposed further, end proof by ⊤R. *)
-    | rightInv ctx TOP = ZeroInf (TopR, ctx SeqR TOP)
+    | rightInv ctx TOP = ZeroInf (TopR, ctx ===> TOP)
       (* Extend Ω with A and decompose B on the right with that context. *)
       (* Rule: ⊃R. *)
     | rightInv (G || O) (A IMPL B) =
-        OneInf (ImplR, rightInv $ G || (A::O) $ B, G || O SeqR (A IMPL B))
+        OneInf (ImplR, rightInv $ G || (A::O) $ B, G || O ===> (A IMPL B))
       (* If we encounter disjunction or falsehood, we punt and switch to left
        * inversion. *)
     | rightInv (G || O) (A DISJ B) = leftInv $ G || O $ A DISJ B
@@ -79,7 +78,7 @@ structure InvCalc = struct
         (* If P = C, we have C contained in Ω hence are done. *)
         (* Otherwise we move P into Γ and continue. *)
         if P = C
-        then ZeroInf (InitL, G || (P::O) SeqR P)
+        then ZeroInf (InitL, G || (P::O) ===> P)
         else leftInv ((P::G) || O) C
    | handleLeftAtomic (_ || _) _ = raise Fail "impossible case in `handleLeftAtomic`"
 
@@ -88,35 +87,33 @@ structure InvCalc = struct
        * Γ; Ω, A, B with the same succedent. *)
     | leftInv (G || (A CONJ B::O)) C =
         let val D' = leftInv $ G || (A::B::O) $ C
-        in OneInf (ConjL, D', G || ((A CONJ B)::O) SeqL C) end
+        in OneInf (ConjL, D', G || ((A CONJ B)::O) ===> C) end
       (* If there is an A ∨ B at the end of Ω, we need to prove C with both
        * A at the end of Ω and B at the end of Ω. *)
     | leftInv (G || (A DISJ B::O)) C =
         let val subG1 = leftInv $ G || (A::O) $ C
             val subG2 = leftInv $ G || (B::O) $ C
-        in TwoInf (DisjL, subG1, subG2, (G || (A DISJ B::O)) SeqL C) end
+        in TwoInf (DisjL, subG1, subG2, (G || (A DISJ B::O)) ===> C) end
       (* If there is a ⊤ at the right of Ω just get rid of that and continue
        * the left-inversion. *)
     | leftInv (G || (TOP::O)) C =
-        OneInf (TopL, leftInv $ G || O $ C, (G || (TOP::O)) SeqL C)
+        OneInf (TopL, leftInv $ G || O $ C, (G || (TOP::O)) ===> C)
       (* If there is a ⊥ at the right of Ω we can prove C regardless of
        * whatever it is by using ⊥L. *)
-    | leftInv (G || (BOT::O)) r = ZeroInf (BotL, G || (BOT::O) SeqL BOT)
+    | leftInv (G || (BOT::O)) r = ZeroInf (BotL, G || (BOT::O) ===> BOT)
     | leftInv (G || (A IMPL B::O)) C = leftInv $ (A IMPL B::G) || O $ C
     | leftInv (G || []) (A DISJ B) =
         (case (tryDisjR DisjR1 G A, tryDisjR DisjR2 G B) of
-          (SOME d, _)  => OneInf (DisjR1, d, G || [] SeqL (A DISJ B))
-        | (_, SOME d)  => OneInf (DisjR2, d, G || [] SeqL (A DISJ B))
+          (SOME d, _)  => OneInf (DisjR1, d, G || [] ===> (A DISJ B))
+        | (_, SOME d)  => OneInf (DisjR2, d, G || [] ===> (A DISJ B))
         | (_, _)  => raise NoProof)
     | leftInv (G || []) C =
         case tryImplL G C of
-          SOME D1 => OneInf (ImplL, D1, G || [] SeqL C)
+          SOME D1 => OneInf (ImplL, D1, G || [] ===> C)
         | NONE => raise NoProof
 
-  fun prove p =
-    SOME $ rightInv ([] || []) p
-    handle NoProof =>
-      (SOME $ leftInv ([] || []) p
-      handle NoProof => NONE)
+  fun prove A =
+    SOME (rightInv $ [] || [] $ A)
+    handle NoProof => NONE
 
 end

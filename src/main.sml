@@ -5,8 +5,7 @@ structure Main = struct
   open LaTeXGen
 
   infixr 0 $
-  infixr 4 SeqL
-  infixr 4 SeqR
+  infixr 4 ===>
   infix  5 ||
 
   type flags = {
