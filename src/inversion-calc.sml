@@ -116,10 +116,10 @@ structure InvCalc = struct
     | leftInv (G || (A IMPL B::O)) C = leftInv $ (A IMPL B::G) || O $ C
     | leftInv (G || []) (A DISJ B) =
         (case tryDisjR DisjR1 G A of
-          SOME D' => SOME $ OneInf (DisjR1, D', G || [] ===> A DISJ B)
-        | NONE => (case tryDisjR DisjR2 G B of
+           SOME D' => SOME $ OneInf (DisjR1, D', G || [] ===> A DISJ B)
+         | NONE => (case tryDisjR DisjR2 G B of
                      SOME D' => SOME $ OneInf (DisjR2, D', G || [] ===> A DISJ B)
-                   | NONE => NONE))
+                    | NONE => NONE))
     | leftInv (G || []) C =
         if L.exists isImpl G
         then
