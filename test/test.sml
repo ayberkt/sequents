@@ -20,8 +20,8 @@ structure Test = struct
     , ("(A \\/ B) => (B \\/ A)", true)
     , ("((A \\/ B) => (B \\/ A)) /\\ ((B \\/ A) => (A \\/ B))", true)
     , ("(A \\/ B) => (B \\/ A)", true)
-    (*, ("(A => B => C) => (A => B) => (A => C)", true)*)
-    (*, ("(A \\/ B => C) => (A => C) /\\ (B => C)", true)*)
+    , ("(A => (B => (C => A)))", true)
+    (*, ("((A \\/ B) => C) => ((A => C) /\\ (B => C))", true)*)
 
     , ("F", false)
     , ("A => F", false)
