@@ -7,7 +7,7 @@ structure Main = struct
   infixr 0 $
   infixr 4 SeqL
   infixr 4 SeqR
-  infix 5 ||
+  infix  5 ||
 
   type flags = {
     shouldGenLaTeX : bool,
@@ -39,7 +39,7 @@ structure Main = struct
     fun main (arg0, argv) =
       let
         val prop = Parser.parse o valOf $ TextIO.inputLine TextIO.stdIn
-        val flgs  = parseArgs defaultFlgs argv
+        val flgs = parseArgs defaultFlgs argv
       in
         case prove prop of
           SOME drv =>
