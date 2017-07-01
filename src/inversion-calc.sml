@@ -52,12 +52,12 @@ structure InvCalc = struct
 
   (* If an atomic formula is encountered in a right-decomposition sequent we
      simply need to verify that it occurs in Γ. *)
-  fun tryDisjR rule G P =
+  (*fun tryDisjR rule G P =
     ( (*print "Called tryDisjR...\n";*)
     (case rightInv $ G || [] $ P of
       SOME D' => SOME $ OneInf (rule, D', G || [] ===> P)
-    | NONE => NONE))
-
+    | NONE => NONE))*)
+(*
   and tryImplL [] _ = NONE
     | tryImplL G C =
         let
@@ -78,64 +78,45 @@ structure InvCalc = struct
             d::_ => d
           | [] => NONE
         end
+*)
 
-  and handleRightAtomic (G || O) P =
-    if List.exists (fn x => P = x) G
-    (* If P ∈ Γ then we can just use initR once to conclude our proof. *)
-    then SOME $ ZeroInf (InitR, G || O ===> P)
-    (* If P ∉ Γ we switch to left-inversion on P. *)
-    else leftInv $ G || O $ P
-
-  and rightInv ctx (ATOM p) = handleRightAtomic ctx (ATOM p)
+  fun rightInv (G || O) (ATOM P) =
+        if List.exists (fn (ATOM x) => P = x) G
+        then ZeroInf (InitR, G || O ===> (ATOM P))
+        else leftInv $ G || O $ (ATOM P)
     | rightInv ctx (A CONJ B) =
-        (case (rightInv ctx A, rightInv ctx B) of
-           (SOME D1, SOME D2) => SOME $ TwoInf (ConjR, D1, D2, ctx ===> (A CONJ B))
-         | (_, _) => NONE)
-    | rightInv ctx TOP = SOME $ ZeroInf (TopR, ctx ===> TOP)
+        let val (D1, D2) = (rightInv ctx A, rightInv ctx B)
+        in TwoInf (ConjR, D1, D2, ctx ===> (A CONJ B)) end
+    | rightInv ctx TOP = ZeroInf (TopR, ctx ===> TOP)
     | rightInv (G || O) (A IMPL B) =
-        (case rightInv $ G || (A::O) $ B of
-           SOME D' => SOME $ OneInf (ImplR, D', G || O ===> A IMPL B)
-         | NONE => NONE)
+        let val D1 = rightInv $ G || (A::O) $ B
+        in OneInf (ImplR, D1, G || O ===> A IMPL B) end
     | rightInv (G || O) (A DISJ B) = leftInv $ G || O $ A DISJ B
     | rightInv (G || O) BOT = leftInv $ G || O $ BOT
 
-  and handleLeftAtomic (G || (P::O)) C =
-        (* If P = C, we have C contained in Ω hence are done. *)
-        (* Otherwise we move P into Γ and continue. *)
-        if P = C
-        then SOME $ ZeroInf (InitL, G || (P::O) ===> P)
-        else leftInv ((P::G) || O) C
-   | handleLeftAtomic (_ || _) _ = raise Fail "impossible case in `handleLeftAtomic`"
-
-  and leftInv (G || ((ATOM P)::O)) C = handleLeftAtomic (G || ((ATOM P)::O)) C
-      (* If there is an A ∧ B at the end of Ω, perform left inversion with
-       * Γ; Ω, A, B with the same succedent. *)
+  and leftInv (G || ((ATOM P)::O)) C =
+        if (ATOM P) = C
+        then ZeroInf (InitL, G || ((ATOM P)::O) ===> (ATOM P))
+        else leftInv (((ATOM P)::G) || O) C
     | leftInv (G || (A CONJ B::O)) C =
-        (case leftInv $ G || (A::B::O) $ C of
-           SOME D' => SOME $ OneInf (ConjL, D', G || (A CONJ B::O) ===> C)
-         | NONE => NONE)
-      (* If there is an A ∨ B at the end of Ω, we need to prove C with both
-       * A at the end of Ω and B at the end of Ω. *)
+        let val D1 = leftInv $ G || (A::B::O) $ C
+        in OneInf (ConjL, D1, G || (A CONJ B::O) ===> C) end
     | leftInv (G || (A DISJ B::O)) C =
-        (case (leftInv $ G || (A::O) $ C, leftInv $ G || (B::O) $ C) of
-           (SOME D1, SOME D2) => SOME $ TwoInf (DisjL, D1, D2, (G || (A DISJ B::O)) ===> C)
-         | (_, _) => NONE)
-      (* If there is a ⊤ at the right of Ω just get rid of that and continue
-       * the left-inversion. *)
+        let val (D1, D2) = (leftInv $ G || (A::O) $ C, leftInv $ G || (B::O) $ C)
+        in TwoInf (DisjL, D1, D2, (G || (A DISJ B::O)) ===> C) end
     | leftInv (G || (TOP::O)) C =
-        (case leftInv $ G || O $ C of
-           SOME D' => SOME $ OneInf (TopL, D', G || (TOP::O) ===> C)
-         | NONE => NONE)
-      (* If there is a ⊥ at the right of Ω we can prove C regardless of
-       * whatever it is by using ⊥L. *)
-    | leftInv (G || (BOT::O)) _ = SOME $ ZeroInf (BotL, G || (BOT::O) ===> BOT)
+        let val D1 = leftInv $ G || O $ C
+        in OneInf (TopL, D1, G || (TOP::O) ===> C) end
+    | leftInv (G || (BOT::O)) _ = ZeroInf (BotL, G || (BOT::O) ===> BOT)
     | leftInv (G || (A IMPL B::O)) C = leftInv $ (A IMPL B::G) || O $ C
-    | leftInv (G || []) (A DISJ B) =
-        (case tryDisjR DisjR1 G A of
-           SOME D' => SOME $ OneInf (DisjR1, D', G || [] ===> A DISJ B)
-         | NONE => (case tryDisjR DisjR2 G B of
-                     SOME D' => SOME $ OneInf (DisjR2, D', G || [] ===> A DISJ B)
-                    | NONE => NONE))
+(*
+  and leftInvTry (G || []) (A DISJ B) =
+        case tryDisjR DisjR1 G A of
+          SOME D1 => SOME $ OneInf (DisjR1, D', G || [] ===> A DISJ B)
+        | NONE =>
+            (case tryDisjR DisjR2 G B of
+               SOME D1 => SOME $ OneInf (DisjR2, D1, G || [] ===> A DISJ B)
+             | NONE => NONE)
     | leftInv (G || []) C =
         if L.exists isImpl G
         then
@@ -143,7 +124,7 @@ structure InvCalc = struct
              SOME (D1, D2) => SOME $ TwoInf (ImplL, D1, D2, G || [] ===> C)
            | NONE => NONE)
         else NONE
-
+*)
   val prove = rightInv $ [] || []
 
 end
