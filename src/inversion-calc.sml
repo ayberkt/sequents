@@ -13,6 +13,22 @@ structure InvCalc = struct
     | <*> ((x::xs), ys) = ((fn y => (x, y)) <$> ys) @ (<*>(xs, ys))
   infix 2 <*>
 
+  val mapi =
+    fn (f : int * 'a -> 'b) => fn (xs : 'a list) =>
+      let
+        fun mapi' f [] _ = []
+          | mapi' f (x::xs) n = (f (n, x))::(mapi' f xs (n+1))
+      in mapi' f xs 0 end
+
+  fun splitAt (xs, n) =
+    let
+      fun splitAt' (pre, post, i : int) ([], n : int) = (pre, post)
+        | splitAt' (pre, post, i : int) (y::ys, n) =
+            if i < n
+            then splitAt' (pre@[y], post    , i+1) (ys, n)
+            else splitAt' (pre    , post@[y], i+1) (ys, n)
+    in splitAt' ([], [], 0) (xs, n) end
+
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL
 
   datatype context = || of (prop list) * (prop list) infix 5 ||
@@ -55,8 +71,8 @@ structure InvCalc = struct
                   | _ => NONE
                 end)
             | try (_, _) = NONE
-          val indices : int list = valOf <$> L.filter isSome (L.mapi (fn (i, x) => if isImpl x then SOME i else NONE) G)
-          fun mkCtx i = (fn (xs, ys) => (hd ys, xs @ (tl ys))) o L.splitAt $ (G, i)
+          val indices : int list = valOf <$> L.filter isSome (mapi (fn (i, x) => if isImpl x then SOME i else NONE) G)
+          fun mkCtx i = (fn (xs, ys) => (hd ys, xs @ (tl ys))) o splitAt $ (G, i)
         in
           case L.filter isSome (try <$> (mkCtx <$> indices)) of
             d::_ => d
