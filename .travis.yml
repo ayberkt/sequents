@@ -1,7 +1,8 @@
 language: sml
 
 before_install:
-  - sudo apt-get install smlnj ml-yacc ml-lex ml-ulex
+  - sudo apt-get update -qq
+  - sudo apt-get install -y --force-yes smlnj ml-yacc ml-lex ml-ulex
 
 script:
   - make tests
