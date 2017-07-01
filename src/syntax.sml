@@ -1,11 +1,11 @@
 structure Syntax = struct
-  open String
+  structure S = String
 
   infixr 0 $
   fun f $ x = f x
 
   datatype prop =
-      ATOM of string
+      ATOM of S.string
     | IMPL of prop * prop
     | CONJ of prop * prop
     | DISJ of prop * prop
