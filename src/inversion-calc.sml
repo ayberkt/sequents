@@ -89,20 +89,24 @@ structure InvCalc = struct
     end
 
   and rightInv (G || O) (ATOM P) =
-        if L.exists (fn x => x = (ATOM P)) (G @ O)
+        if L.exists (fn x => x = (ATOM P)) G
         then
           let
             val _ = printLn "Right inversion (init)..."
             val _ = printLn $ "  |  " ^ (prProps G) ^ "; " ^ (prProps O)
+            val _ = printLn $ "  |  NTS: " ^ P
+            val _ = printLn $ "Proof found for " ^ P ^ "."
           in
             ZeroInf (InitR, G || O ===> (ATOM P))
           end
         else
           let
-            val _ = printLn "Right inversion (LR-P)...n"
+            val _ = printLn "Right inversion (LR-P)..."
             val _ = printLn $ "  |  " ^ (prProps G) ^ "; " ^ (prProps O)
+            val _ = printLn $ "  |  NTS: " ^ P
           in
-            leftInv $ G || O $ (ATOM P)
+            (leftInv $ G || O $ (ATOM P)
+            handle NoProof => (printLn $ "!!! Proof attempt failed."; raise NoProof))
           end
     | rightInv (G || O) (A CONJ B) =
         let
@@ -113,12 +117,16 @@ structure InvCalc = struct
           in TwoInf (ConjR, D1, D2, (G || O) ===> (A CONJ B)) end
         end
     | rightInv ctx TOP =
-        let val _ = printLn "Right inversion (⊤R)..." in
+        let
+          val _ = printLn "Right inversion (⊤R)..."
+          val _ = printLn "Proof found for ⊤."
+        in
           ZeroInf (TopR, ctx ===> TOP)
         end
     | rightInv (G || O) (A IMPL B) =
         let val _ = printLn "Right inversion (⊃R)..."
             val _ = printLn $ "  |  " ^ (prProps G) ^ "; " ^ (prProps O)
+            val _ = printLn $ "  |  NTS: " ^ (Syntax.pretty $ A IMPL B)
         in
           let val D1 = rightInv $ G || (A::O) $ B
           in OneInf (ImplR, D1, G || O ===> A IMPL B) end
@@ -127,6 +135,7 @@ structure InvCalc = struct
         let
           val _ = printLn "Right inversion (LR-∨)..."
           val _ = printLn $ "  |  " ^ (prProps G) ^ "; " ^ (prProps O)
+          val _ = printLn $ "  |  NTS: " ^ (Syntax.pretty $ A DISJ B)
         in
           leftInv (G || O) $ A DISJ B
         end
@@ -138,11 +147,20 @@ structure InvCalc = struct
   and leftInv (G || ((ATOM P)::O)) C =
         if (ATOM P) = C
         then
-          let val _ = printLn "Left inversion (init)..." in
+          let
+            val _ = printLn "Left inversion (init)..."
+            val _ = printLn $ "  |  " ^ (prProps G) ^ "; " ^ (prProps ((ATOM P)::O))
+            val _ = printLn $ "  |  To show" ^ (Syntax.pretty $ C)
+          in
             ZeroInf (InitL, G || ((ATOM P)::O) ===> (ATOM P))
           end
         else
-          let val _ = printLn "Left inversion (shift-P)..." in
+          let
+            val _ = printLn "Left inversion (shift-P)..."
+            val _ = printLn $ "  |  " ^ (prProps G) ^ "; " ^ (prProps ((ATOM P)::O))
+            val _ = printLn $ "  |  To show " ^ (Syntax.pretty $ C)
+            val _ = printLn $ "  |  ---> shift " ^ P ^ " to the unordered context..."
+          in
             leftInv (((ATOM P)::G) || O) C
           end
     | leftInv (G || (A CONJ B::O)) C =
@@ -153,7 +171,10 @@ structure InvCalc = struct
     | leftInv (G || (A DISJ B::O)) C =
         let
           val _ = printLn "Left inversion (∨L)..."
-          val _ = printLn $ "  |  " ^ (prProps G) ^ "; " ^ (prProps O)
+          val _ = printLn $ "  |  " ^ (prProps G) ^ "; " ^ (prProps (A DISJ B::O))
+          val _ = printLn $ "  |  NTS: " ^ (Syntax.pretty $ C)
+          val _ = printLn $ "  |  --> we will left invert " ^ (Syntax.pretty A)
+          val _ = printLn $ "  |  --> we will left invert " ^ (Syntax.pretty B)
           val (D1, D2) = (leftInv $ G || (A::O) $ C, leftInv $ G || (B::O) $ C)
         in
           TwoInf (DisjL, D1, D2, (G || (A DISJ B::O)) ===> C)
@@ -171,19 +192,27 @@ structure InvCalc = struct
         let val _ = printLn "Left inversion (shift-⊃)..." in
           leftInv $ (A IMPL B::G) || O $ C
         end
-    | leftInv (G || []) C = O.getOpt (search G C, raise NoProof)
+    | leftInv (G || []) C =
+        case search G C of
+          SOME D => D
+        | NONE => (printLn "Raising NoProof\n"; raise NoProof)
 
   and search G (A DISJ B) =
         let
-          val _  = printLn "Search (∨R1)..."
-          val _ = printLn $ prProps G
+          val _ = printLn "Search (∨R1)..."
+          val _ = printLn $ "  |  " ^ (prProps G) ^ "; " ^ (prProps [])
+          val _ = printLn $ "  |  NTS: " ^ (Syntax.pretty $ A DISJ B)
+          val _ = printLn $ "  |  ---> will do right inversion on " ^ (Syntax.pretty A)
+          val _ = printLn $ "!!! Beginning attempt at proof using (∨R1)"
         in
           SOME (rightInv (G || []) A)
           handle NoProof =>
-            let
-              val _  = printLn "Search (∨R2)..."
-              val _  = printLn $ prProps G
-            in (SOME $ rightInv (G || []) B handle NoProof => NONE) end
+            (let
+              val _ = printLn "Search (∨R2)..."
+              val _ = printLn $ "  |  " ^ (prProps G) ^ "; " ^ (prProps [])
+              val _ = printLn $ "  |  NTS: " ^ (Syntax.pretty $ A DISJ B)
+              val _ = printLn $ "  |  ---> will do right inversion on " ^ (Syntax.pretty B)
+            in (SOME $ rightInv (G || []) B handle NoProof => NONE) end)
         end
     | search G C =
         let
@@ -194,11 +223,12 @@ structure InvCalc = struct
           then (case tryImplL G C of
                   (D1, D2)::_ => SOME (TwoInf (ImplL, D1, D2, G || [] ===> C))
                 | [] => NONE)
-          else
-            (printLn "impossible case happened\n"; raise Fail "impossible case")
+          else NONE
         end
 
-    fun prove P = SOME (rightInv $ [] || [] $ P) handle NoProof => NONE
+    fun prove P =
+      SOME (rightInv $ [] || [] $ P)
+      handle NoProof => NONE
 
   (*val prove =
     fn (ATOM P)   => NONE

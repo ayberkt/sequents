@@ -40,12 +40,12 @@ structure Main = struct
         val prop = Parser.parse o valOf $ TextIO.inputLine TextIO.stdIn
         val flgs = parseArgs defaultFlgs argv
       in
-        case prove prop of
+        (case prove prop of
           SOME drv =>
             (if #shouldGenLaTeX flgs
              then generate drv
              else printLn "Proof found!"; 0)
-        | NONE => (printLn "No proof found"; 1)
+         | NONE => 1)
       end
   end
 

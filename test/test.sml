@@ -9,9 +9,9 @@ structure Test = struct
   fun mustBe (x, y) = (x, y)
   infixr 3 mustBe
 
-  val unitTests =
+  fun unitTests () =
     [
-      allCtxs [ATOM "A", IMPL (ATOM "P", ATOM "Q")]
+      (*allCtxs [ATOM "A", IMPL (ATOM "P", ATOM "Q")]
         mustBe
       [(IMPL (ATOM "P", ATOM "Q"), [ATOM "A"])]
     , allCtxs [ATOM "A", DISJ (ATOM "X", ATOM "Y"), IMPL (ATOM "P", ATOM "Q")]
@@ -21,54 +21,49 @@ structure Test = struct
       mustBe
       [ (IMPL (ATOM "A", ATOM "B"), [IMPL (ATOM "P", ATOM "Q"), ATOM "A", ATOM "Q"])
       , (IMPL (ATOM "P", ATOM "Q"), [IMPL (ATOM "A", ATOM "B"), ATOM "A", ATOM "Q"])
-      ]
+      ]*)
     ]
 
-  val inputs =
+  val isProvable = isSome o prove o Parser.parse
+
+  val proofTests =
     [
-      ("A /\\ B => B /\\ A", true)
-    , ("((A /\\ B) => (B /\\ A)) /\\ ((B /\\ A) => (A /\\ B))", true)
-    , ("T", true)
-    , ("A => T", true)
-    , ("A => B => C => (A => B)", true)
-    , ("T /\\ T", true)
-    , ("T /\\ (T /\\ T)", true)
-    , ("(T /\\ T) /\\ T", true)
-    , ("(A \\/ B) => (B \\/ A)", true)
-    , ("((A \\/ B) => (B \\/ A)) /\\ ((B \\/ A) => (A \\/ B))", true)
-    , ("(A \\/ B) => (B \\/ A)", true)
-    , ("(A => (B => (C => A)))", true)
-    (*, ("((A \\/ B) => C) => ((A => C) /\\ (B => C))", true)*)
-
-    , ("F", false)
-    , ("A => F", false)
-    , ("A /\\ B => A /\\ B /\\ C", false)
+      ("A /\\ B => B /\\ A", isProvable ("A /\\ B => B /\\ A") mustBe true)
+    , ("A /\\ B => A"      , isProvable ("A /\\ B => A")       mustBe true)
+    , ("A /\\ B => B"      , isProvable ("A /\\ B => B")       mustBe true)
+    , ("A \\/ B => B \\/ A", isProvable ("A \\/ B => B \\/ A") mustBe true)
+    , ("A => (B => A)"     , isProvable ("A => (B => A)")      mustBe true)
+    , ("A => (B => A)"     , isProvable ("A => (B => A)")      mustBe true)
+    , ("A => A"            , isProvable ("A => (B => A)")      mustBe true)
+    , ("A => B"            , isProvable ("A => B")             mustBe false)
+    , ("A /\\ A"           , isProvable ("A /\\ A")            mustBe false)
+    , ("A /\\ B"           , isProvable ("A /\\ B")            mustBe false)
     ]
 
-  val unitTestsPassed = List.all (fn (x, y) => x = y) unitTests
+  fun prBool true  = "SUCCESS"
+    | prBool false = "FAILURE"
 
-  fun test [] _ = ()
-    | test ((i, r)::ts) n =
-        (let val _ = print $ (Int.toString n) ^ "  "
-             val prop = Parser.parse i
-         in
-           (case (prove prop, r) of
-              (SOME _, true) => print "SUCCESS.\n"
-            | (NONE, false) => print "SUCCESS.\n"
-            | (_, _) => (failCount := !failCount + 1; print "FAILURE.\n"));
-            test ts (n+1)
-          end)
-        handle _ => (failCount := !failCount + 1; print "FAILURE.\n"; test ts (n+1))
+  fun printDots 0 = ()
+    | printDots n = (print "."; printDots (n-1))
+
+  fun testSuccessful (i, (dsc, (inp, out))) =
+  (
+    print $ ((Int.toString (i+1)) ^ "  | ");
+    print $ "Testing " ^ dsc ^ " ";
+    printDots (50 - (String.size dsc));
+    print $ " " ^ (prBool $ inp = out) ^ "\n";
+    inp = out
+  )
+
+  fun allSuccessful ts = List.foldr (fn (p, q) => p andalso q) true (List.mapi testSuccessful ts)
 
   fun main (arg0, argv) =
-    (
-      if unitTestsPassed
-      then
-        (test inputs 0;
-         (if !failCount = 0
-         then (print "All tests have passed.\n"; 0)
-         else (print $ Int.toString (!failCount) ^ " tests failed.\n"; 1)))
-      else (print "Some of the unit tests have failed.\n"; 1))
+    (if allSuccessful (unitTests ())
+     then
+       (if allSuccessful proofTests
+        then (print "\n--  All tests have passed.\n"; 0)
+        else (print "Some of the proof tests have failed.\n"; 1))
+     else (print "Some of the unit tests have failed.\n"; 1))
 
   val _ = SMLofNJ.exportFn ("test",  main)
 
