@@ -1,1 +1,1 @@
-make tests; sml @SMLload=test.x86-darwin
+make tests > /dev/null; sml @SMLload=test.x86-darwin
