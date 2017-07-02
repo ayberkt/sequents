@@ -3,6 +3,7 @@ Group is
   $/ml-yacc-lib.cm
   ../lib/sml-unparse/unparse.cm
   main.sml
+  search-report.sml
   inversion-calc.sml
   latex-gen.sml
   parser.sml
