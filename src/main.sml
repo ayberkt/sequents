@@ -60,7 +60,7 @@ structure Main = struct
             (if #shouldGenLaTeX flgs
              then generate drv
              else printLn "Proof found!"; 0)
-         | NONE => 1)
+         | NONE => (printLn "Proposition not provable."; 1))
       end
   end
 

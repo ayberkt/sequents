@@ -4,8 +4,8 @@ structure InvCalc = struct
   structure SP = SearchReport
   open Syntax
 
-  fun printLn s = ()
-  (*fun printLn s = print (s ^ "\n")*)
+  (*fun printLn s = ()*)
+  fun printLn s = print (s ^ "\n")
 
   fun $ (f, x) = f x
   infix 0 $
@@ -54,7 +54,7 @@ structure InvCalc = struct
 
   exception NoProof
 
-  fun noProofFound () = (printLn "NoProof found.\n"; raise NoProof)
+  fun noProofFound () = (printLn "Raising NoProof\n"; raise NoProof)
 
   fun getImpl (i, _ IMPL _) = SOME i
     | getImpl (_, _) = NONE
@@ -188,7 +188,7 @@ structure InvCalc = struct
     | leftInv (G || []) C =
         case search G C of
           SOME D => D
-        | NONE => (printLn "Raising NoProof\n"; noProofFound ())
+        | NONE => noProofFound ()
 
   and search G (A DISJ B) =
         let
@@ -217,7 +217,8 @@ structure InvCalc = struct
           if L.exists isImpl G
           then (case tryImplL G C of
                   D1::_ => (SOME D1)
-                | [] => NONE)
+                | [] => NONE
+                handle NoProof => NONE)
           else NONE
         end
 
