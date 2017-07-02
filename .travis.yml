@@ -1,6 +1,7 @@
 language: sml
 
 before_install:
+  - sudo apt-get update
   - sudo apt-get install libc6:i386
   - mkdir smlnj && cd smlnj
   - wget http://smlnj.cs.uchicago.edu/dist/working/110.81/config.tgz
