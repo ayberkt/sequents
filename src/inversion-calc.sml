@@ -1,6 +1,9 @@
 structure InvCalc = struct
   structure L = List
+  structure O = Option
   open Syntax
+
+  fun printLn s = print (s ^ "\n")
 
   fun $ (f, x) = f x
   infix 0 $
@@ -8,13 +11,8 @@ structure InvCalc = struct
   fun <$> (f, xs) = L.map f xs
   infixr 1 <$>
 
-  fun <*> (_,  []) = []
-    | <*> ([], _ ) = []
-    | <*> ((x::xs), ys) = ((fn y => (x, y)) <$> ys) @ (<*>(xs, ys))
-  infix 2 <*>
-
   val mapi =
-    fn (f : int * 'a -> 'b) => fn (xs : 'a list) =>
+    fn f => fn (xs : 'a list) =>
       let
         fun mapi' f [] _ = []
           | mapi' f (x::xs) n = (f (n, x))::(mapi' f xs (n+1))
@@ -50,38 +48,48 @@ structure InvCalc = struct
 
   val isImpl = fn (_ IMPL _) => true | _ => false
 
-  (* If an atomic formula is encountered in a right-decomposition sequent we
-     simply need to verify that it occurs in Γ. *)
-  (*fun tryDisjR rule G P =
-    ( (*print "Called tryDisjR...\n";*)
-    (case rightInv $ G || [] $ P of
-      SOME D' => SOME $ OneInf (rule, D', G || [] ===> P)
-    | NONE => NONE))*)
-(*
-  and tryImplL [] _ = NONE
-    | tryImplL G C =
-        let
-          fun try (A IMPL B, G') =
-                (let
-                  val MD1 = rightInv $ (A IMPL B::G') || [] $ A
-                  val MD2 = leftInv  $ G || [B] $ C
-                in
-                  case (MD1, MD2) of
-                    (SOME D1, SOME D2) => SOME (D1, D2)
-                  | _ => NONE
-                end)
-            | try (_, _) = NONE
-          val indices : int list = valOf <$> L.filter isSome (mapi (fn (i, x) => if isImpl x then SOME i else NONE) G)
-          fun mkCtx i = (fn (xs, ys) => (hd ys, xs @ (tl ys))) o splitAt $ (G, i)
-        in
-          case L.filter isSome (try <$> (mkCtx <$> indices)) of
-            d::_ => d
-          | [] => NONE
-        end
-*)
+  exception NoProof
 
-  fun rightInv (G || O) (ATOM P) =
-        if List.exists (fn (ATOM x) => P = x) G
+  fun getImpl (i, _ IMPL _) = SOME i
+    | getImpl (_, _) = NONE
+
+  fun catOpts [] = []
+    | catOpts (SOME x::os) = x::(catOpts os)
+    | catOpts (NONE::os) = catOpts os
+
+  fun prProps' [] = ""
+    | prProps' [p] = Syntax.pretty p
+    | prProps' (p::ps) = Syntax.pretty p ^ ", " ^ (prProps' ps)
+
+  fun prProps ps = "[" ^ prProps' ps ^ "]"
+
+  fun prCtxs' [] = ""
+    | prCtxs' [(p, ps)] = "<" ^ (Syntax.pretty p) ^ " | " ^ (prProps ps) ^ ">"
+    | prCtxs' ((p, ps)::cs) = "<" ^ (Syntax.pretty p ^ " | " ^ prProps ps) ^ ">" ^ ", " ^ (prCtxs' cs)
+
+  fun prCtxs cs = "[" ^ prCtxs' cs ^ "]"
+
+  fun allCtxs G =
+    let
+      val implindxs : int list = catOpts (mapi getImpl G)
+      fun rm i xs = catOpts (mapi (fn (j, x) => if not (i = j) then SOME x else NONE) xs)
+      val res : (prop * prop list) list = map (fn i => (L.nth (G, i), rm i G)) implindxs
+    in
+      res
+    end
+
+  fun tryImplL G C : (derivation * derivation) list =
+    let
+      fun foo (A IMPL B, G') =
+            (SOME (rightInv ((A IMPL B::G') || []) A, leftInv (G' || [B]) C)
+            handle NoProof => NONE)
+        | foo (_, _) = NONE
+    in
+      catOpts (List.map foo $ allCtxs G)
+    end
+
+  and rightInv (G || O) (ATOM P) =
+        if L.exists (fn x => x = (ATOM P)) G
         then ZeroInf (InitR, G || O ===> (ATOM P))
         else leftInv $ G || O $ (ATOM P)
     | rightInv ctx (A CONJ B) =
@@ -91,8 +99,8 @@ structure InvCalc = struct
     | rightInv (G || O) (A IMPL B) =
         let val D1 = rightInv $ G || (A::O) $ B
         in OneInf (ImplR, D1, G || O ===> A IMPL B) end
-    | rightInv (G || O) (A DISJ B) = leftInv $ G || O $ A DISJ B
-    | rightInv (G || O) BOT = leftInv $ G || O $ BOT
+    | rightInv ctx (A DISJ B) = leftInv ctx $ A DISJ B
+    | rightInv ctx BOT = leftInv ctx BOT
 
   and leftInv (G || ((ATOM P)::O)) C =
         if (ATOM P) = C
@@ -109,22 +117,22 @@ structure InvCalc = struct
         in OneInf (TopL, D1, G || (TOP::O) ===> C) end
     | leftInv (G || (BOT::O)) _ = ZeroInf (BotL, G || (BOT::O) ===> BOT)
     | leftInv (G || (A IMPL B::O)) C = leftInv $ (A IMPL B::G) || O $ C
-(*
-  and leftInvTry (G || []) (A DISJ B) =
-        case tryDisjR DisjR1 G A of
-          SOME D1 => SOME $ OneInf (DisjR1, D', G || [] ===> A DISJ B)
-        | NONE =>
-            (case tryDisjR DisjR2 G B of
-               SOME D1 => SOME $ OneInf (DisjR2, D1, G || [] ===> A DISJ B)
-             | NONE => NONE)
-    | leftInv (G || []) C =
-        if L.exists isImpl G
-        then
-          (case tryImplL G C of
-             SOME (D1, D2) => SOME $ TwoInf (ImplL, D1, D2, G || [] ===> C)
-           | NONE => NONE)
-        else NONE
-*)
+    | leftInv (G || []) C = O.getOpt (search G C, raise NoProof)
+
+  and search G (A DISJ B) =
+        let
+          val D1 = rightInv (G || []) A
+        in
+          SOME D1
+          handle NoProof =>
+            let val D1 = rightInv (G || []) B
+            in SOME D1 handle NoProof => NONE end
+        end
+    | search G C =
+        (case tryImplL G C of
+          (D1, D2)::_ => SOME (TwoInf (ImplL, D1, D2, G || [] ===> C))
+        | [] => NONE)
+
   val prove = rightInv $ [] || []
 
 end
