@@ -1,5 +1,8 @@
 language: sml
 
+dist: trust
+sudo: required
+
 before_install:
   - sudo apt-get update
   - sudo apt-get install libc6:i386
