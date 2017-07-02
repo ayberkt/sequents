@@ -10,21 +10,36 @@ structure Main = struct
 
   type flags = {
     shouldGenLaTeX : bool,
+    steps          : bool,
     outfile        : string option
   }
 
   val defaultFlgs = {
     shouldGenLaTeX = false,
+    steps          = false,
     outFile        = NONE
   }
 
   fun parseArgs flgs [] = flgs
     | parseArgs flgs ("--latex"::rest) =
-        parseArgs { shouldGenLaTeX = true, outFile = #outFile flgs } rest
+        let val flgs' = {
+          shouldGenLaTeX = true,
+          steps = #steps flgs,
+          outFile = #outFile flgs
+        }
+        in parseArgs flgs' rest end
+    | parseArgs flgs ("--steps"::rest) =
+        let val flgs' = {
+          shouldGenLaTeX = #shouldGenLaTeX flgs,
+          steps = true,
+          outFile = #outFile flgs
+        }
+        in parseArgs flgs' rest end
     | parseArgs flgs ("--out"::file::rest) =
         let
           val flgs' = {
             shouldGenLaTeX = #shouldGenLaTeX flgs,
+            steps = #steps flgs,
             outFile = SOME file
           }
         in parseArgs flgs' rest end
