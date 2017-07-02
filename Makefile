@@ -2,7 +2,7 @@ main:
 	echo "OS.Process.exit(OS.Process.failure)" | sml -m src/main.cm | grep "^[^'['.*]"
 
 tests:
-	echo "OS.Process.exit(OS.Process.failure)" | sml -m test/test.cm | grep "^[^'['.*]"
+	echo "OS.Process.exit(OS.Process.failure)" | sml -m test/test.cm
 
 clean:
 	rm -f sequent.x86-darwin
