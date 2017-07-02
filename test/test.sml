@@ -55,7 +55,7 @@ structure Test = struct
     inp = out
   )
 
-  fun allSuccessful ts = List.foldr (fn (p, q) => p andalso q) true (List.mapi testSuccessful ts)
+  fun allSuccessful ts = List.foldr (fn (p, q) => p andalso q) true (mapi testSuccessful ts)
 
   fun main (arg0, argv) =
     (if allSuccessful (unitTests ())
