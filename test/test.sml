@@ -26,18 +26,28 @@ structure Test = struct
 
   val isProvable = isSome o prove o Parser.parse
 
+  val conjAssoc = "A /\\ (B /\\ C) => (A /\\ B) /\\ C"
+  val conjComm  = "A /\\ B => B /\\ A"
+  val random1   = "(A \\/ B => C) => ((A => C) /\\ (B => C))"
+  val random2   = "((A \\/ B \\/ C) => D) => ((A => D) /\\ (B => D) /\\ (C => D))"
+
   val proofTests =
     [
-      ("A /\\ B => B /\\ A", isProvable ("A /\\ B => B /\\ A") mustBe true)
+      (conjComm            , isProvable conjComm               mustBe true)
     , ("A /\\ B => A"      , isProvable ("A /\\ B => A")       mustBe true)
     , ("A /\\ B => B"      , isProvable ("A /\\ B => B")       mustBe true)
+    , (conjAssoc           , isProvable conjAssoc              mustBe true)
     , ("A \\/ B => B \\/ A", isProvable ("A \\/ B => B \\/ A") mustBe true)
     , ("A => (B => A)"     , isProvable ("A => (B => A)")      mustBe true)
     , ("A => (B => A)"     , isProvable ("A => (B => A)")      mustBe true)
     , ("A => A"            , isProvable ("A => (B => A)")      mustBe true)
+    , (random1, isProvable random1 mustBe true)
+    (*, (random2, isProvable random2 mustBe true)*)
+
     , ("A => B"            , isProvable ("A => B")             mustBe false)
     , ("A /\\ A"           , isProvable ("A /\\ A")            mustBe false)
     , ("A /\\ B"           , isProvable ("A /\\ B")            mustBe false)
+    , ("A \\/ B"           , isProvable ("A \\/ B")            mustBe false)
     ]
 
   fun prBool true  = "SUCCESS"
@@ -46,11 +56,19 @@ structure Test = struct
   fun printDots 0 = ()
     | printDots n = (print "."; printDots (n-1))
 
+  fun mkSpace 0 = ""
+    | mkSpace n = (" " ^ mkSpace (n-1))
+
+  val digits = S.size o Int.toString
+
+  fun prLineNum n =
+    print $  (Int.toString n) ^ (mkSpace $ 4 - (digits n))
+
   fun testSuccessful (i, (dsc, (inp, out))) =
   (
-    print $ ((Int.toString (i+1)) ^ "  | ");
+    print $ (prLineNum (i+1); "| ");
     print $ "Testing " ^ dsc ^ " ";
-    printDots (50 - (String.size dsc));
+    printDots (60 - (String.size dsc));
     print $ " " ^ (prBool $ inp = out) ^ "\n";
     inp = out
   )
