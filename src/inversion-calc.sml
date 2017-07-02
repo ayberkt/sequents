@@ -225,11 +225,11 @@ structure InvCalc = struct
     let
       val ctxs = allCtxs gamma
       val _ = printLn $ "  |  CONTEXTS:  " ^ prCtxs ctxs
-      fun baz ((P DISJ Q) IMPL B, G) =
+      fun baz (A IMPL B, G) =
             let
-              val _  = printLn $ "  |  ⊃L subgoal 1: " ^ SP.prSequent ((P DISJ Q) IMPL B::G) [] (P DISJ Q)
+              val _  = printLn $ "  |  ⊃L subgoal 1: " ^ SP.prSequent (A IMPL B::G) [] A
               val _  = printLn $ "  |  ⊃L subgoal 2: " ^ SP.prSequent G [B] C
-              val D1 = rightInv (((P DISJ Q) IMPL B::G) || []) (P DISJ Q) true
+              val D1 = rightInv ((A IMPL B::G) || []) A true
               val D2 = leftInv (G || [B]) C
             in SOME (TwoInf (ImplL, D1, D2, gamma || [] ===> C)) handle NoProof => NONE end
         | baz (_, _) = (printLn "INTERNAL INCONSISTENCY!"; raise Fail "impossible case")
