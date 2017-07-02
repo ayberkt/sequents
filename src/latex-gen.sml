@@ -53,7 +53,7 @@ structure LaTeXGen = struct
   end
 
   fun mkItem (ATOM P) = U.atom P
-    | mkItem (A CONJ B) = U.infix' (U.Non, 3, "\\wedge") (mkItem A, mkItem B)
+    | mkItem (A CONJ B) = U.infix' (U.Right, 3, "\\wedge") (mkItem A, mkItem B)
     | mkItem TOP = U.atom "\\top"
     | mkItem (A DISJ B) = U.infix' (U.Non, 2, "\\vee") (mkItem A, mkItem B)
     | mkItem BOT = U.atom "\\bot"
@@ -67,7 +67,7 @@ structure LaTeXGen = struct
 
   local
     open String
-    fun showProps PS = concat o (intersperse ", ") $ genProp <$> PS
+    fun showProps PS = concat o (intersperse ", ") $ genProp <$> (List.rev PS)
   in
     fun mkCtx (G  || O) = showProps $ G @ O
   end
