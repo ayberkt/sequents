@@ -3,3 +3,4 @@ src/.cm
 out.*
 texput.log
 test/.cm
+src/test/.cm
