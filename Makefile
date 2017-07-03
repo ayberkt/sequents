@@ -1,5 +1,7 @@
 main:
 	echo "OS.Process.exit(OS.Process.failure)" | sml -m src/main.cm | grep "^[^'['.*]"
+	echo "sml @SMLload=sequent.x86-darwin \$@" > sequent
+	chmod u+x sequent
 
 tests:
 	echo "OS.Process.exit(OS.Process.failure)" | sml -m src/test/test.cm
