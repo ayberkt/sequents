@@ -5,8 +5,8 @@ structure InvCalc = struct
   open Syntax
   open Proofs
 
-  (*fun printLn s = ()*)
-  fun printLn s = print (s ^ "\n")
+  fun printLn s = ()
+  (*fun printLn s = print (s ^ "\n")*)
 
   fun $ (f, x) = f x
   infix 0 $
