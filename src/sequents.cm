@@ -1,0 +1,12 @@
+Group is
+  $/basis.cm
+  $/ml-yacc-lib.cm
+  parser.sml
+  prop.grm
+  prop.lex
+  syntax.sml
+  ../lib/sml-unparse/unparse.cm
+  proofs.sml
+  search-report.sml
+  inversion-calc.sml
+  latex-gen.sml
