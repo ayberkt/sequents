@@ -3,6 +3,7 @@ structure InvCalc = struct
   structure O = Option
   structure SP = SearchReport
   open Syntax
+  open Proofs
 
   (*fun printLn s = ()*)
   fun printLn s = print (s ^ "\n")
@@ -29,25 +30,7 @@ structure InvCalc = struct
             else splitAt' (pre    , post@[y], i+1) (ys, n)
     in splitAt' ([], [], 0) (xs, n) end
 
-  infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL
-
-  datatype context = || of (prop list) * (prop list) infix 5 ||
-
-
-  datatype sequent = ===> of context * prop
-  infixr 4 ===>
-
-  datatype rule =
-      ConjR | ConjL  | TopR
-    | ImplR | ImplL
-    | InitR | InitL
-    | DisjL | DisjR1 | DisjR2
-    | TopL  | BotL
-
-  datatype derivation =
-      ZeroInf of rule * sequent
-    | OneInf  of rule * derivation * sequent
-    | TwoInf  of rule * derivation * derivation * sequent
+  infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
 
   fun isImpl (_ IMPL _) = true
     | isImpl _ = false
