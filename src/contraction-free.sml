@@ -37,7 +37,8 @@ structure ContFree = struct local open Proofs in
     | search ((A DISJ B::G) || O) C = raise Fail "TODO"
     | search ((BOT::G) || O) C      = concByBotL ((BOT::G) || O) C
     | search ([] || O) (ATOM X)     = concByInit O (ATOM X)
-    | search ([] || O) _ = raise Fail "TODO"
+    | search ([] || O) _            = raise Fail "TODO"
+    | search (_  || _) _            = raise Fail "TODO"
   and prvConjR ctx A B =
     TwoInf (ConjR, search ctx A, search ctx B, ctx ===> A CONJ B)
   and prvImplR (G || O) A B =
