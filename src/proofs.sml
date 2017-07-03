@@ -8,7 +8,7 @@
   datatype rule =
       ConjR | ConjL  | TopR
     | ImplR | ImplL
-    | InitR | InitL
+    | Init
     | DisjL | DisjR1 | DisjR2
     | TopL  | BotL
 
