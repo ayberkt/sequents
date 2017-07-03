@@ -9,4 +9,5 @@ Group is
   proofs.sml
   search-report.sml
   inversion-calc.sml
+  contraction-free.sml
   latex-gen.sml
