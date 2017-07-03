@@ -73,7 +73,7 @@ structure InvCalc = struct
           if L.exists (fn x => x = (ATOM P)) G
           then
             let val _ = printLn $ "  |  This shows: " ^ SP.prSequent G O (ATOM P)
-            in ZeroInf (InitR, G || O ===> (ATOM P)) end
+            in ZeroInf (Init, G || O ===> (ATOM P)) end
           else
             (if bt
              then raise NoProof
@@ -125,7 +125,7 @@ structure InvCalc = struct
             val _ = printLn $ "  |  " ^ (SP.prProps G) ^ "; " ^ (SP.prProps ((ATOM P)::O))
             val _ = printLn $ "  |  This proves " ^ (SP.prSequent (G) ((ATOM P)::O) C)
           in
-            ZeroInf (InitL, G || ((ATOM P)::O) ===> (ATOM P))
+            ZeroInf (Init, G || ((ATOM P)::O) ===> (ATOM P))
           end
         else
           let
