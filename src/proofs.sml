@@ -1,7 +1,8 @@
  structure Proofs = struct
   open Syntax
 
-  datatype context = || of (prop list) * (prop list)
+  datatype context =
+      || of (prop list) * (prop list)
 
   datatype sequent = ===> of context * prop
 
@@ -11,6 +12,12 @@
     | Init
     | DisjL | DisjR1 | DisjR2
     | TopL  | BotL
+    | AtomImplL
+    | ConjImplL
+    | TopImplL
+    | DisjImplL
+    | BotImplL
+    | ImplImplL
 
   datatype derivation =
       ZeroInf of rule * sequent

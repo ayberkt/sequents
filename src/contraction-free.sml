@@ -1,55 +1,55 @@
-structure ContFree = struct local open Proofs in
-
+structure ContFree = struct
+  open Syntax
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
+  open Proofs
 
-  fun isRightSync (ATOM P) = true
-    | isRightSync (A DISJ B) = true
-    | isRightSync BOT = true
-    | isRightSync _ = false
 
-  fun isLeftSync (ATOM P) = true
-    | isLeftSync ((ATOM P) IMPL B) = true
-    | isLeftSync ((D IMPL E) IMPL B) = true
-    | isLeftSync _ = false
+  datatype derivation =
+      ZeroInf of rule * sequent
+    | OneInf  of rule * derivation * sequent
+    | TwoInf  of rule * derivation * derivation * sequent
+
+  fun isAtom (ATOM _) = true
+    | isAtom _        = false
 
   exception NoProof
 
-  fun updateCtx (G || O) [] = G || O
-    | updateCtx (G || O) (P::Ps) =
-        if isLeftSync P
-        then updateCtx (G || (P::O)) Ps
-        else updateCtx ((P::G) || O) Ps
+  fun appConjR G A B = ((G ===> A, G ===> B), G ===> A CONJ B)
 
-  fun concByTopR ctx = ZeroInf (TopR, ctx ===> TOP)
+  fun appTopR G TOP = G ===> TOP
 
-  fun concByInit (O : prop list) P =
-    if List.exists (fn x => x = P) O
-    then ZeroInf (Init, ([] || O) ===> P)
-    else raise NoProof
+  fun appImplR G A B = ((A::G) ===> B, G ===> (A IMPL B))
 
-  fun concByBotL ctx C = ZeroInf (BotL, ctx ===> C)
+  fun appConjL A B G C = (A::B::G ===> C, ((A CONJ B)::G) ===> C)
 
-  fun search (G  || O) TOP          = concByTopR (G || O)
-    | search (G  || O) (A CONJ B)   = prvConjR (G || O) A B
-    | search (G  || O) (A IMPL B)   = prvImplR (G || O) A B
-    | search ((A CONJ B::G) || O) C = prvConjL (G || O) A B C
-    | search ((TOP::G) || O) C      = prvTopL ((TOP::G) || O) C
-    | search ((A DISJ B::G) || O) C = raise Fail "TODO"
-    | search ((BOT::G) || O) C      = concByBotL ((BOT::G) || O) C
-    | search ([] || O) (ATOM X)     = concByInit O (ATOM X)
-    | search ([] || O) _            = raise Fail "TODO"
-    | search (_  || _) _            = raise Fail "TODO"
-  and prvConjR ctx A B =
-    TwoInf (ConjR, search ctx A, search ctx B, ctx ===> A CONJ B)
-  and prvImplR (G || O) A B =
-    let val (G' || O') = updateCtx (G || O) [A]
-    in search (G' || O') B end
-  and prvConjL ctx A B C =
-    let val ctx' = updateCtx ctx [A, B]
-    in search ctx' C end
-  and prvTopL ctx C = raise Fail "TODO"
-  fun prove P =
-    SOME (search ([] || []) P)
-    handle NoProof => NONE
+  fun appTopL G C = (G ===> C, (TOP::G) ===> C)
 
-end end
+  fun appBotL G C = (BOT::G) ===> C
+
+  fun appTopImplL B G C = ((B::G) ===> C, ((TOP IMPL B)::G) ===> C)
+
+  fun disjImplL D E B G C = (((D IMPL B)::(E IMPL B)::G) ===> C, ((D DISJ E IMPL B)::G) ===> C)
+
+  fun botImplL B G C = (G ===> C, (BOT IMPL B)::G ===> C)
+
+  fun appInit G P =
+    if List.exists (fn x => x = P) G
+    then true
+    else false
+
+  fun appDisjL G A B C =
+    ((A::G ===> C, B::G ===> C), (A DISJ B::G) ===> C)
+
+  fun prove (G || []) (ATOM P)   =
+        if appInit G (ATOM P)
+        then ZeroInf (Init, G || [] ===> P)
+        else raise NoProof
+    | prove (G || []) (A DISJ B) =
+        (OneInf (DisjR1, prove (G || []) A, G || A ===> (A DISJ B))
+        handle NoProof =>
+          OneInf (DisjR2, prove (G || []) B, G || A ===> (A DISJ B)))
+    | prove (G || []) BOT = raise Fail "TODO"
+    | prove ( || []) C = raise Fail "TODO"
+    | prove ((ATOM P) IMPL B) = raise Fail "TODO"
+
+end
