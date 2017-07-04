@@ -3,10 +3,10 @@ language: sml
 dist: trusty
 sudo: required
 
-
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -y --force-yes smlnj ml-yacc ml-lex ml-ulex
 
 script:
+  - chmod u+x script/test.sh
   - ./script/test.sh
