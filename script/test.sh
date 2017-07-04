@@ -1,1 +1,2 @@
-make tests && sml @SMLload=test.x86-darwin
+echo "OS.Process.exit(OS.Process.failure)" | sml -m src/test/test.cm
+sml @SMLload=test.x86-darwin

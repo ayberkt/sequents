@@ -9,5 +9,4 @@ before_install:
   - sudo apt-get install -y --force-yes smlnj ml-yacc ml-lex ml-ulex
 
 script:
-  - make tests
-  - sml @SMLload=test.x86-linux
+  - ./script/test.sh
