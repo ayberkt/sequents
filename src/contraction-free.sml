@@ -3,53 +3,66 @@ structure ContFree = struct
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
   open Proofs
 
-
-  datatype derivation =
-      ZeroInf of rule * sequent
-    | OneInf  of rule * derivation * sequent
-    | TwoInf  of rule * derivation * derivation * sequent
-
   fun isAtom (ATOM _) = true
     | isAtom _        = false
 
+  fun isLeftSync (ATOM P) = true
+    | isLeftSync ((ATOM P) IMPL B) = true
+    | isLeftSync ((D IMPL E) IMPL B) = true
+    | isLeftSync _ = false
+
   exception NoProof
 
-  fun appConjR G A B = ((G ===> A, G ===> B), G ===> A CONJ B)
+  fun concByBotL (G || O) C = ZeroInf (BotL, (BOT::G) || O ===> C)
 
-  fun appTopR G TOP = G ===> TOP
+  fun updateCtx (G || O) A =
+    if isLeftSync A then ((A::G) || O) else (G || (A::O))
 
-  fun appImplR G A B = ((A::G) ===> B, G ===> (A IMPL B))
+  fun appConjR (G || O) A B = (G || O ===> A, G || O ===> B)
 
-  fun appConjL A B G C = (A::B::G ===> C, ((A CONJ B)::G) ===> C)
+  fun appTopR (G || O) TOP = G || O ===> TOP
 
-  fun appTopL G C = (G ===> C, (TOP::G) ===> C)
+  fun appImplR ctx A B = (updateCtx ctx A) ===> B
 
-  fun appBotL G C = (BOT::G) ===> C
+  fun appConjL (G || O) (A : prop) (B : prop) (C : prop) =
+    let val ctx' = updateCtx (updateCtx (G || O) A) B
+    in ctx' ===> C end
 
-  fun appTopImplL B G C = ((B::G) ===> C, ((TOP IMPL B)::G) ===> C)
+  fun appTopL (G || O) C = G || O ===> C
 
-  fun disjImplL D E B G C = (((D IMPL B)::(E IMPL B)::G) ===> C, ((D DISJ E IMPL B)::G) ===> C)
+  fun appTopImplL (G || O) B C = (updateCtx (G || O) B) ===> C
 
-  fun botImplL B G C = (G ===> C, (BOT IMPL B)::G ===> C)
+  fun disjImplL ctx D E B C =
+    let val ctx' = updateCtx (updateCtx ctx (D IMPL B)) (E IMPL B)
+    in ctx' ===> C end
 
-  fun appInit G P =
+  fun botImplL B G C = G ===> C
+
+  fun appInit G P = List.exists (fn x => x = P) G
+
+  fun appDisjL (G || O) A B C =
+    let val ctx1 = updateCtx (G || O) A
+        val ctx2 = updateCtx (G || O) B
+    in (ctx1 ===> C, ctx2 ===> C) end
+
+  fun appAtomImplL (G || O) P B C : sequent =
     if List.exists (fn x => x = P) G
-    then true
-    else false
+    then (updateCtx (G || O) B) ===> C
+    else raise NoProof
 
-  fun appDisjL G A B C =
-    ((A::G ===> C, B::G ===> C), (A DISJ B::G) ===> C)
+  fun prove (G || [] ===> (ATOM X)) : derivation =
+        if appInit G (ATOM X)
+        then ZeroInf (Init, G || [] ===> (ATOM X))
+        else (raise NoProof)
+    | prove (G || [] ===> (A DISJ B)) =
+        (OneInf (DisjR1, prove (G || [] ===> A), G || [] ===> (A DISJ B))
+         handle NoProof =>
+          OneInf (DisjR2, prove (G || [] ===> B), G || [] ===> (A DISJ B)))
+    | prove (G || [] ===> BOT) = raise NoProof
+    | prove ((((ATOM X) IMPL B::G) || []) ===> C) =
+        let val ctx = ((ATOM X) IMPL B::G) || []
+            val newgoal : sequent = appAtomImplL (G || []) (ATOM X) B C
+        in OneInf (AtomImplL, prove newgoal, ctx ===> C) end
 
-  fun prove (G || []) (ATOM P)   =
-        if appInit G (ATOM P)
-        then ZeroInf (Init, G || [] ===> P)
-        else raise NoProof
-    | prove (G || []) (A DISJ B) =
-        (OneInf (DisjR1, prove (G || []) A, G || A ===> (A DISJ B))
-        handle NoProof =>
-          OneInf (DisjR2, prove (G || []) B, G || A ===> (A DISJ B)))
-    | prove (G || []) BOT = raise Fail "TODO"
-    | prove ( || []) C = raise Fail "TODO"
-    | prove ((ATOM P) IMPL B) = raise Fail "TODO"
 
 end
