@@ -1,6 +1,6 @@
 structure Test = struct
   open InvCalc
-  structure CF = ContFree
+  (*structure CF = ContFree*)
   open TextIO
 
   fun $ (f, x) = f x
@@ -26,7 +26,7 @@ structure Test = struct
     ]
 
   val isProvable = isSome o prove o Parser.parse
-  val isCFProvable = isSome o CF.prove o Parser.parse
+  (*val isCFProvable = isSome o CF.prove o Parser.parse*)
 
   val conjAssoc = "A /\\ (B /\\ C) => (A /\\ B) /\\ C"
   val conjComm  = "A /\\ B => B /\\ A"
@@ -57,7 +57,7 @@ structure Test = struct
     , ("[Inversion] A /\\ B"           , isProvable ("A /\\ B") mustBe false)
     , ("[Inversion] A \\/ B"           , isProvable ("A \\/ B") mustBe false)
 
-    , ("[Cont-free] /\\-commutative"   , isCFProvable projConjL  mustBe true)
+    (*, ("[Cont-free] /\\-commutative"   , isCFProvable projConjL  mustBe true)*)
     ]
 
   fun prBool true  = "SUCCESS"
