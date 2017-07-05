@@ -50,19 +50,29 @@ structure ContFree = struct
     then (updateCtx (G || O) B) ===> C
     else raise NoProof
 
+  fun appImplImplL (G || O) D E B C =
+    let val ctx1 = updateCtx (updateCtx (G || O) (E IMPL B)) D
+        val ctx2 = updateCtx (G || O) B
+    in (ctx1 ===> E, ctx2 ===> C) end
+
   fun prove (G || [] ===> (ATOM X)) : derivation =
         if appInit G (ATOM X)
         then ZeroInf (Init, G || [] ===> (ATOM X))
-        else (raise NoProof)
+        else raise NoProof
+    | prove ((((ATOM X) IMPL B::G) || []) ===> C) =
+        let val ctx = ((ATOM X) IMPL B::G) || []
+            val newgoal = appAtomImplL (G || []) (ATOM X) B C
+        in OneInf (AtomImplL, prove newgoal, ctx ===> C) end
+    | prove (G || [] ===> BOT) = raise NoProof
     | prove (G || [] ===> (A DISJ B)) =
         (OneInf (DisjR1, prove (G || [] ===> A), G || [] ===> (A DISJ B))
          handle NoProof =>
           OneInf (DisjR2, prove (G || [] ===> B), G || [] ===> (A DISJ B)))
-    | prove (G || [] ===> BOT) = raise NoProof
-    | prove ((((ATOM X) IMPL B::G) || []) ===> C) =
-        let val ctx = ((ATOM X) IMPL B::G) || []
-            val newgoal : sequent = appAtomImplL (G || []) (ATOM X) B C
-        in OneInf (AtomImplL, prove newgoal, ctx ===> C) end
+    | prove ((((D IMPL E) IMPL B::G) || []) ===> C) =
+        let
+          val goal = ((D IMPL E) IMPL B::G) || [] ===> C
+          val (newgoal1, newgoal2) = appImplImplL (G || []) D E B C
+        in TwoInf (ImplImplL, prove newgoal1, prove newgoal2, goal) end
 
 
 end
