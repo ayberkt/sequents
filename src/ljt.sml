@@ -1,4 +1,4 @@
-structure ContFree = struct
+structure LJT = struct
   open Syntax
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
   open Proofs
