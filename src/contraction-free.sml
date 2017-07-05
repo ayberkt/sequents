@@ -69,10 +69,12 @@ structure ContFree = struct
          handle NoProof =>
           OneInf (DisjR2, prove (G || [] ===> B), G || [] ===> (A DISJ B)))
     | prove ((((D IMPL E) IMPL B::G) || []) ===> C) =
-        let
-          val goal = ((D IMPL E) IMPL B::G) || [] ===> C
-          val (newgoal1, newgoal2) = appImplImplL (G || []) D E B C
+        let val goal = ((D IMPL E) IMPL B::G) || [] ===> C
+            val (newgoal1, newgoal2) = appImplImplL (G || []) D E B C
         in TwoInf (ImplImplL, prove newgoal1, prove newgoal2, goal) end
+    | prove (G || O ===> A CONJ B) =
+        let val (newgoal1, newgoal2) = appConjR (G || O) A B
+        in TwoInf (ConjR, prove newgoal1, prove newgoal2, G || O ===> A CONJ B) end
 
 
 end
