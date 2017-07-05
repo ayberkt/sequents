@@ -75,6 +75,7 @@ structure ContFree = struct
     | prove (G || O ===> A CONJ B) =
         let val (newgoal1, newgoal2) = appConjR (G || O) A B
         in TwoInf (ConjR, prove newgoal1, prove newgoal2, G || O ===> A CONJ B) end
+    | prove _ = raise Fail "TODO"
 
 
 end
