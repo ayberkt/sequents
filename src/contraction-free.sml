@@ -55,27 +55,27 @@ structure ContFree = struct
         val ctx2 = updateCtx (G || O) B
     in (ctx1 ===> E, ctx2 ===> C) end
 
-  fun prove (G || [] ===> (ATOM X)) : derivation =
+  fun search (G || [] ===> (ATOM X)) : derivation =
         if appInit G (ATOM X)
         then ZeroInf (Init, G || [] ===> (ATOM X))
         else raise NoProof
-    | prove ((((ATOM X) IMPL B::G) || []) ===> C) =
+    | search ((((ATOM X) IMPL B::G) || []) ===> C) =
         let val ctx = ((ATOM X) IMPL B::G) || []
             val newgoal = appAtomImplL (G || []) (ATOM X) B C
-        in OneInf (AtomImplL, prove newgoal, ctx ===> C) end
-    | prove (G || [] ===> BOT) = raise NoProof
-    | prove (G || [] ===> (A DISJ B)) =
-        (OneInf (DisjR1, prove (G || [] ===> A), G || [] ===> (A DISJ B))
+        in OneInf (AtomImplL, search newgoal, ctx ===> C) end
+    | search (G || [] ===> BOT) = raise NoProof
+    | search (G || [] ===> (A DISJ B)) =
+        (OneInf (DisjR1, search (G || [] ===> A), G || [] ===> (A DISJ B))
          handle NoProof =>
-          OneInf (DisjR2, prove (G || [] ===> B), G || [] ===> (A DISJ B)))
-    | prove ((((D IMPL E) IMPL B::G) || []) ===> C) =
+          OneInf (DisjR2, search (G || [] ===> B), G || [] ===> (A DISJ B)))
+    | search ((((D IMPL E) IMPL B::G) || []) ===> C) =
         let val goal = ((D IMPL E) IMPL B::G) || [] ===> C
             val (newgoal1, newgoal2) = appImplImplL (G || []) D E B C
-        in TwoInf (ImplImplL, prove newgoal1, prove newgoal2, goal) end
-    | prove (G || O ===> A CONJ B) =
+        in TwoInf (ImplImplL, search newgoal1, search newgoal2, goal) end
+    | search (G || O ===> A CONJ B) =
         let val (newgoal1, newgoal2) = appConjR (G || O) A B
-        in TwoInf (ConjR, prove newgoal1, prove newgoal2, G || O ===> A CONJ B) end
-    | prove _ = raise Fail "TODO"
+        in TwoInf (ConjR, search newgoal1, search newgoal2, G || O ===> A CONJ B) end
+    | search _ = raise Fail "TODO"
 
 
 end
