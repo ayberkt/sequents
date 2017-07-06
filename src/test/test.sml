@@ -1,6 +1,5 @@
 structure Test = struct
   open InvCalc
-  (*structure CF = ContFree*)
   open TextIO
 
   fun $ (f, x) = f x
@@ -26,38 +25,42 @@ structure Test = struct
     ]
 
   val isProvable = isSome o prove o Parser.parse
-  (*val isCFProvable = isSome o CF.prove o Parser.parse*)
+  val isCFProvable = isSome o LJT.prove o Parser.parse
 
   val conjAssoc = "A /\\ (B /\\ C) => (A /\\ B) /\\ C"
   val conjComm  = "A /\\ B => B /\\ A"
+  val disjComm  = "A \\/ B => B \\/ A"
   val random1   = "(A \\/ B => C) => ((A => C) /\\ (B => C))"
   val random2   = "((A \\/ B \\/ C) => D) => ((A => D) /\\ (B => D) /\\ (C => D))"
   val curry     = "(A /\\ B => C) => (A => B => C)"
   val projConjL = "A /\\ B => A"
   val projConjR = "A /\\ B => B"
+  val impFst    = "A => (B => A)"
+  val impSnd    = "A => (B => A)"
+  val premisesComm = "(A => B => C) => (B => A => C)"
 
   val proofTests =
     [
-      ("[Inversion] /\\-commutative"   , isProvable conjComm    mustBe true)
-    , ("[Inversion] A /\\ B => A"      , isProvable projConjL   mustBe true)
-    , ("[Inversion] A /\\ B => B"      , isProvable projConjR   mustBe true)
-    , ("[Inversion] /\\-associative"   , isProvable conjAssoc   mustBe true)
-    , ("[Inversion] A \\/ B => B \\/ A", isProvable ("A \\/ B => B \\/ A") mustBe true)
-    , ("[Inversion] A => (B => A)"     , isProvable ("A => (B => A)")      mustBe true)
-    , ("[Inversion] A => (B => A)"     , isProvable ("A => (B => A)")      mustBe true)
-    , ("[Inversion] A => A"            , isProvable ("A => (B => A)")      mustBe true)
-    , ("[Inversion] random1", isProvable random1 mustBe true)
-    , ("[Inversion] random2", isProvable random2 mustBe true)
-    , ("[Inversion] (A => B => C) => (B => A => C)", isProvable "(A => B => C) => (B => A => C)" mustBe true)
-    , ("[Inversion] currying"          , isProvable curry         mustBe true)
-    , ("[Inversion] uncurrying"        , isProvable "(A => B => C) => (A /\\ B => C)" mustBe true)
-    , ("[Inversion] F"                 , isProvable "F"         mustBe false)
-    , ("[Inversion] A => B"            , isProvable ("A => B")  mustBe false)
-    , ("[Inversion] A /\\ A"           , isProvable ("A /\\ A") mustBe false)
-    , ("[Inversion] A /\\ B"           , isProvable ("A /\\ B") mustBe false)
-    , ("[Inversion] A \\/ B"           , isProvable ("A \\/ B") mustBe false)
+      ("[Inv] /\\-commutative"   , isProvable conjComm      mustBe true)
+    , ("[Inv] A /\\ B => A"      , isProvable projConjL     mustBe true)
+    , ("[Inv] A /\\ B => B"      , isProvable projConjR     mustBe true)
+    , ("[Inv] /\\-associative"   , isProvable conjAssoc     mustBe true)
+    , ("[Inv] A \\/ B => B \\/ A", isProvable disjComm      mustBe true)
+    , ("[Inv] A => (B => A)"     , isProvable impFst        mustBe true)
+    , ("[Inv] A => A"            , isProvable "A  => A"     mustBe true)
+    , ("[Inv] random1"           , isProvable random1       mustBe true)
+    , ("[Inv] random2"           , isProvable random2       mustBe true)
+    , ("[Inv] "                  , isProvable premisesComm  mustBe true)
+    , ("[Inv] currying"          , isProvable curry         mustBe true)
+    , ("[Inv] uncurrying"        , isProvable "(A => B => C) => (A /\\ B => C)" mustBe true)
+    , ("[Inv] F"                 , isProvable "F"         mustBe false)
+    , ("[Inv] A => B"            , isProvable ("A => B")  mustBe false)
+    , ("[Inv] A /\\ A"           , isProvable ("A /\\ A") mustBe false)
+    , ("[Inv] A /\\ B"           , isProvable ("A /\\ B") mustBe false)
+    , ("[Inv] A \\/ B"           , isProvable ("A \\/ B") mustBe false)
 
-    (*, ("[Cont-free] /\\-commutative"   , isCFProvable projConjL  mustBe true)*)
+    , ("[LJT] /\\-commutative"       , isCFProvable "T"            mustBe true)
+    , ("[LJT] falsum not provable"   , isCFProvable "F"           mustBe false)
     ]
 
   fun prBool true  = "SUCCESS"
