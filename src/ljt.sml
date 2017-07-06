@@ -20,8 +20,6 @@ structure LJT = struct
 
   fun appConjR (G || O) A B = (G || O ===> A, G || O ===> B)
 
-  fun appTopR (G || O) TOP = G || O ===> TOP
-
   fun appImplR ctx A B = (updateCtx ctx A) ===> B
 
   fun appConjL (G || O) (A : prop) (B : prop) (C : prop) =
@@ -73,9 +71,19 @@ structure LJT = struct
             val (newgoal1, newgoal2) = appImplImplL (G || []) D E B C
         in TwoInf (ImplImplL, search newgoal1, search newgoal2, goal) end
     | search (G || O ===> A CONJ B) =
-        let val (newgoal1, newgoal2) = appConjR (G || O) A B
-        in TwoInf (ConjR, search newgoal1, search newgoal2, G || O ===> A CONJ B) end
-    | search _ = raise Fail "TODO"
+        let
+          val goal = G || O ===> A CONJ B
+          val (newgoal1, newgoal2) = appConjR (G || O) A B
+        in TwoInf (ConjR, search newgoal1, search newgoal2, goal) end
+    | search (G || O ===> TOP) = ZeroInf (TopR, G || O ===> TOP)
+    | search (G || O ===> A IMPL B) =
+        let val newgoal = appImplR (G || O) A B
+        in OneInf (ImplR, search newgoal, G || O ===> A IMPL B) end
+    | search _ = raise NoProof
+
+  fun prove (A : prop) : derivation option =
+    SOME (search ([] || [] ===> A))
+    handle NoProof => NONE
 
 
 end
