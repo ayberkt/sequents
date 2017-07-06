@@ -70,6 +70,10 @@ structure LJT = struct
         let val goal = ((D IMPL E) IMPL B::G) || [] ===> C
             val (newgoal1, newgoal2) = appImplImplL (G || []) D E B C
         in TwoInf (ImplImplL, search newgoal1, search newgoal2, goal) end
+    | search ((A CONJ B::G) || O ===> C) =
+        let val goal = (A CONJ B::G) || O ===> C
+            val newgoal = appConjL (G || O) A B C
+        in OneInf (ConjL, search newgoal, goal) end
     | search (G || O ===> A CONJ B) =
         let
           val goal = G || O ===> A CONJ B
@@ -79,7 +83,6 @@ structure LJT = struct
     | search (G || O ===> A IMPL B) =
         let val newgoal = appImplR (G || O) A B
         in OneInf (ImplR, search newgoal, G || O ===> A IMPL B) end
-    | search _ = raise NoProof
 
   fun prove (A : prop) : derivation option =
     SOME (search ([] || [] ===> A))
