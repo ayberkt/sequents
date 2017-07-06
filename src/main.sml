@@ -1,7 +1,7 @@
 structure Main = struct
   open Parser
   open Syntax
-  open InvCalc
+  (*open InvCalc*)
   open LaTeXGen
 
   infixr 0 $
@@ -52,15 +52,19 @@ structure Main = struct
   in
     fun main (arg0, argv) =
       let
-        val prop = Parser.parse o valOf $ TextIO.inputLine TextIO.stdIn
+        val prop =
+          Parser.parse o valOf $ TextIO.inputLine TextIO.stdIn
+          handle ParseError s =>
+            (print ("Error: " ^ s ^ "\n"); raise Fail "foo")
         val flgs = parseArgs defaultFlgs argv
       in
-        (case prove prop of
+        (case LJT.prove prop of
           SOME drv =>
             (if #shouldGenLaTeX flgs
              then generate drv
              else printLn "Proof found!"; 0)
-         | NONE => (printLn "Proposition not provable."; 1))
+         | NONE => (printLn "Proposition not provable."; 1)
+         handle _ => (print "Error\n"; 1))
       end
   end
 
