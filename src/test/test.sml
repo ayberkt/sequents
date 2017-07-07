@@ -59,14 +59,17 @@ structure Test = struct
     , ("[Inv] A /\\ B"           , isProvable ("A /\\ B") mustBe false)
     , ("[Inv] A \\/ B"           , isProvable ("A \\/ B") mustBe false)
 
-    , ("[LJT] T provable"            , isCFProvable "T" mustBe true)
-    , ("[LJT] /\\ left elimination"  , isCFProvable projConjL mustBe true)
-    , ("[LJT] /\\-commutative"       , isCFProvable conjComm mustBe true)
-    , ("[LJT] \\/-commutative"       , isCFProvable disjComm mustBe true)
-    , ("[LJT] /\\-elimination (left)", isCFProvable projConjL mustBe true)
-    , ("[LJT] /\\-elimination (right)", isCFProvable projConjR mustBe true)
+    , ("[LJT] T provable"               , isCFProvable "T"        mustBe true)
+    , ("[LJT] /\\ left elimination"     , isCFProvable projConjL  mustBe true)
+    , ("[LJT] /\\-commutative"          , isCFProvable conjComm   mustBe true)
+    , ("[LJT] \\/-commutative"          , isCFProvable disjComm   mustBe true)
+    , ("[LJT] /\\-elimination (left)"   , isCFProvable projConjL  mustBe true)
+    , ("[LJT] /\\-elimination (right)"  , isCFProvable projConjR  mustBe true)
+    , ("[LJT] A => B => A"              , isCFProvable impFst     mustBe true)
+    , ("[LJT] A => B => B"              , isCFProvable impSnd     mustBe true)
     (*, ("[LJT] currying"              , isCFProvable currying mustBe true)*)
-    , ("[LJT] falsum not provable"   , isCFProvable "F" mustBe false)
+    , ("[LJT] falsum not provable"      , isCFProvable "F"        mustBe false)
+    , ("[LJT] A not provable"           , isCFProvable "A"        mustBe false)
     ]
 
   fun prBool true  = "SUCCESS"
