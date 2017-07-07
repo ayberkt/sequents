@@ -87,13 +87,11 @@ structure Test = struct
     print $  (Int.toString n) ^ (mkSpace $ 4 - (digits n))
 
   fun testSuccessful (i, (dsc, (inp, out))) =
-  (
-    print $ (prLineNum (i+1); "| ");
-    print $ dsc ^ " ";
-    printDots (60 - (String.size dsc));
-    print $ " " ^ (prBool $ inp = out) ^ "\n";
-    inp = out
-  )
+    (print $ (prLineNum (i+1); "| ");
+     print $ dsc ^ " ";
+     printDots (60 - (String.size dsc));
+     print $ " " ^ (prBool $ inp = out) ^ "\n";
+     inp = out)
 
   fun allSuccessful ts = List.foldr (fn (p, q) => p andalso q) true (mapi testSuccessful ts)
 
