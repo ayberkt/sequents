@@ -74,6 +74,11 @@ structure LJT = struct
         let val goal = (A CONJ B::G) || O ===> C
             val newgoal = appConjL (G || O) A B C
         in OneInf (ConjL, search newgoal, goal) end
+    | search ((TOP::G) || O ===> C) = ZeroInf (TopL, appTopL (G || O) C)
+    | search ((A DISJ B::G) || O ===> C) =
+        let val goal = (A DISJ B::G) || O ===> C
+            val (newgoal1, newgoal2) = appDisjL (G || O) A B C
+        in TwoInf (DisjL, search newgoal1, search newgoal2, goal) end
     | search (G || O ===> A CONJ B) =
         let val goal = G || O ===> A CONJ B
             val (newgoal1, newgoal2) = appConjR (G || O) A B
