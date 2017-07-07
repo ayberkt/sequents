@@ -32,7 +32,7 @@ structure Test = struct
   val disjComm  = "A \\/ B => B \\/ A"
   val random1   = "(A \\/ B => C) => ((A => C) /\\ (B => C))"
   val random2   = "((A \\/ B \\/ C) => D) => ((A => D) /\\ (B => D) /\\ (C => D))"
-  val curry     = "(A /\\ B => C) => (A => B => C)"
+  val currying     = "(A /\\ B => C) => (A => B => C)"
   val projConjL = "A /\\ B => A"
   val projConjR = "A /\\ B => B"
   val impFst    = "A => (B => A)"
@@ -51,7 +51,7 @@ structure Test = struct
     , ("[Inv] random1"           , isProvable random1       mustBe true)
     , ("[Inv] random2"           , isProvable random2       mustBe true)
     , ("[Inv] "                  , isProvable premisesComm  mustBe true)
-    , ("[Inv] currying"          , isProvable curry         mustBe true)
+    , ("[Inv] currying"          , isProvable currying      mustBe true)
     , ("[Inv] uncurrying"        , isProvable "(A => B => C) => (A /\\ B => C)" mustBe true)
     , ("[Inv] F"                 , isProvable "F"         mustBe false)
     , ("[Inv] A => B"            , isProvable ("A => B")  mustBe false)
@@ -63,6 +63,9 @@ structure Test = struct
     , ("[LJT] /\\ left elimination"  , isCFProvable projConjL mustBe true)
     , ("[LJT] /\\-commutative"       , isCFProvable conjComm mustBe true)
     , ("[LJT] \\/-commutative"       , isCFProvable disjComm mustBe true)
+    , ("[LJT] /\\-elimination (left)", isCFProvable projConjL mustBe true)
+    , ("[LJT] /\\-elimination (right)", isCFProvable projConjR mustBe true)
+    (*, ("[LJT] currying"              , isCFProvable currying mustBe true)*)
     , ("[LJT] falsum not provable"   , isCFProvable "F" mustBe false)
     ]
 
