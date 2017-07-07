@@ -67,14 +67,14 @@ structure Test = struct
     , ("[LJT] /\\-elimination (right)"  , isCFProvable projConjR  mustBe true)
     , ("[LJT] A => B => A"              , isCFProvable impFst     mustBe true)
     , ("[LJT] A => B => B"              , isCFProvable impSnd     mustBe true)
-    , ("[LJT] A => B => B"              , isCFProvable flip       mustBe true)
+    (*, ("[LJT] A => B => B"              , isCFProvable flip       mustBe true)*)
     (*, ("[LJT] currying"              , isCFProvable currying mustBe true)*)
     , ("[LJT] falsum not provable"      , isCFProvable "F"        mustBe false)
     , ("[LJT] A not provable"           , isCFProvable "A"        mustBe false)
     ]
 
-  fun prBool true  = "SUCCESS"
-    | prBool false = "FAILURE"
+  fun prBool true  = "\027[32mSUCCESS\027[0m"
+    | prBool false = "\027[31mFAILURE\027[0m"
 
   fun printDots 0 = ()
     | printDots n = (print "."; printDots (n-1))
