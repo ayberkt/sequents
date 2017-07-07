@@ -1,4 +1,4 @@
-echo "OS.Process.exit(OS.Process.failure)" | sml -m src/test/test.cm
+echo "OS.Process.exit(OS.Process.failure)" | sml -m src/test/test.cm > /dev/null
 
 if [ $? -eq 0 ]; then
   if [ -f test.x86-linux ]; then
