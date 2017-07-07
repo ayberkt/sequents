@@ -59,8 +59,8 @@ structure LJT = struct
         if appInit G (ATOM X)
         then ZeroInf (Init, G || [] ===> (ATOM X))
         else raise NoProof
-    | search ((((ATOM X) IMPL B::G) || []) ===> C) =
-        let val ctx = ((ATOM X) IMPL B::G) || []
+    | search ((ATOM X IMPL B::G) || [] ===> C) =
+        let val ctx = (ATOM X IMPL B::G) || []
             val newgoal = appAtomImplL (G || []) (ATOM X) B C
         in OneInf (AtomImplL, search newgoal, ctx ===> C) end
     | search (G || [] ===> BOT) = raise NoProof
@@ -94,6 +94,9 @@ structure LJT = struct
         let val goal = G || (D DISJ E IMPL B::O) ===> C
             val newgoal = appDisjImplL (G || O) D E B C
         in OneInf (DisjImplL, search newgoal, goal) end
+    | search (G || (BOT IMPL B::O) ===> C) =
+        let val newgoal = G || O ===> C
+        in OneInf (BotImplL, search newgoal, G || (BOT IMPL B::O) ===> C) end
       (* Asynchronous right rules *)
     | search (G || O ===> A CONJ B) =
         let val goal = G || O ===> A CONJ B
