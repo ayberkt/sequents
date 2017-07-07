@@ -40,6 +40,11 @@ structure LJT = struct
         val ctx2 = updateCtx (G || O) B
     in (ctx1 ===> C, ctx2 ===> C) end
 
+  val appConjImplL : context -> prop * prop * prop * prop -> sequent =
+    fn (G || O) => fn (D : prop, E : prop, B : prop, C : prop) =>
+      let val ctx' = updateCtx (G || O) (D IMPL E IMPL B)
+      in ctx' ===> C end
+
   fun appAtomImplL (G || O) P B C : sequent =
     if List.exists (fn x => x = P) G
     then (updateCtx (G || O) B) ===> C
@@ -59,7 +64,7 @@ structure LJT = struct
             val newgoal = appAtomImplL (G || []) (ATOM X) B C
         in OneInf (AtomImplL, search newgoal, ctx ===> C) end
     | search (G || [] ===> BOT) = raise NoProof
-    | search (G || [] ===> (A DISJ B)) =
+    | search (G || [] ===> A DISJ B) =
         (OneInf (DisjR1, search (G || [] ===> A), G || [] ===> (A DISJ B))
          handle NoProof =>
           OneInf (DisjR2, search (G || [] ===> B), G || [] ===> (A DISJ B)))
@@ -67,15 +72,23 @@ structure LJT = struct
         let val goal = ((D IMPL E) IMPL B::G) || [] ===> C
             val (newgoal1, newgoal2) = appImplImplL (G || []) D E B C
         in TwoInf (ImplImplL, search newgoal1, search newgoal2, goal) end
-    | search ((A CONJ B::G) || O ===> C) =
+      (* Asynchronous left rules *)
+    | search (G || (A CONJ B::O) ===> C) =
         let val goal = (A CONJ B::G) || O ===> C
             val newgoal = appConjL (G || O) A B C
         in OneInf (ConjL, search newgoal, goal) end
-    | search ((TOP::G) || O ===> C) = ZeroInf (TopL, appTopL (G || O) C)
-    | search ((A DISJ B::G) || O ===> C) =
+    | search (G || (A DISJ B::O) ===> C) =
         let val goal = (A DISJ B::G) || O ===> C
             val (newgoal1, newgoal2) = appDisjL (G || O) A B C
         in TwoInf (DisjL, search newgoal1, search newgoal2, goal) end
+    | search (G || (BOT::O) ===> C) =
+        ZeroInf (BotL, G || (BOT::O) ===> C)
+    | search (G || (D CONJ E IMPL B::O) ===> C) =
+        let
+          val goal = G || (D CONJ E IMPL B::O) ===> C
+          val newgoal = appConjImplL (G || O) (D, E, B, C)
+        in OneInf (ConjImplL, search newgoal, goal) end
+      (* Asynchronous right rules *)
     | search (G || O ===> A CONJ B) =
         let val goal = G || O ===> A CONJ B
             val (newgoal1, newgoal2) = appConjR (G || O) A B
