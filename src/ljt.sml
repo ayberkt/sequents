@@ -65,9 +65,9 @@ structure LJT = struct
         in OneInf (AtomImplL, search newgoal, ctx ===> C) end
     | search (G || [] ===> BOT) = raise NoProof
     | search (G || [] ===> A DISJ B) =
-        (OneInf (DisjR1, search (G || [] ===> A), G || [] ===> (A DISJ B))
+        (OneInf (DisjR1, search (G || [] ===> A), G || [] ===> A DISJ B)
          handle NoProof =>
-          OneInf (DisjR2, search (G || [] ===> B), G || [] ===> (A DISJ B)))
+          OneInf (DisjR2, search (G || [] ===> B), G || [] ===> A DISJ B))
     | search ((((D IMPL E) IMPL B::G) || []) ===> C) =
         let val goal = ((D IMPL E) IMPL B::G) || [] ===> C
             val (newgoal1, newgoal2) = appImplImplL (G || []) D E B C
