@@ -59,8 +59,9 @@ structure Test = struct
     , ("[Inv] A /\\ B"           , isProvable ("A /\\ B") mustBe false)
     , ("[Inv] A \\/ B"           , isProvable ("A \\/ B") mustBe false)
 
-    , ("[LJT] /\\-commutative"       , isCFProvable "T"            mustBe true)
-    , ("[LJT] falsum not provable"   , isCFProvable "F"           mustBe false)
+    , ("[LJT] T provable"            , isCFProvable "T" mustBe true)
+    , ("[LJT] /\\-commutative"       , isCFProvable conjComm mustBe true)
+    , ("[LJT] falsum not provable"   , isCFProvable "F" mustBe false)
     ]
 
   fun prBool true  = "SUCCESS"
