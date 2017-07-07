@@ -60,7 +60,8 @@ structure Test = struct
     , ("[Inv] A \\/ B"           , isProvable ("A \\/ B") mustBe false)
 
     , ("[LJT] T provable"            , isCFProvable "T" mustBe true)
-    , ("[LJT] /\\-commutative"       , isCFProvable conjComm mustBe true)
+    , ("[LJT] /\\ left elimination"  , isCFProvable projConjL mustBe true)
+    (*, ("[LJT] /\\-commutative"       , isCFProvable conjComm mustBe true)*)
     , ("[LJT] falsum not provable"   , isCFProvable "F" mustBe false)
     ]
 
@@ -94,7 +95,7 @@ structure Test = struct
      then
        (if allSuccessful proofTests
         then (print "\n--  All tests have passed.\n"; 0)
-        else (print "Some of the proof tests have failed.\n"; 1))
+        else (print "\n-- Some of the tests have failed.\n"; 1))
      else (print "Some of the unit tests have failed.\n"; 1))
 
   val _ = SMLofNJ.exportFn ("test",  main)
