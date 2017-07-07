@@ -12,23 +12,23 @@ structure LJT = struct
 
   fun concByBotL (G || O) C = ZeroInf (BotL, (BOT::G) || O ===> C)
 
-  fun updateCtx (G || O) A =
-    if isLeftSync A then ((A::G) || O) else (G || (A::O))
+  fun insrt (G || O) A =
+    if isLeftSync A then (A::G) || O else G || (A::O)
 
   fun appConjR (G || O) A B = (G || O ===> A, G || O ===> B)
 
-  fun appImplR ctx A B = (updateCtx ctx A) ===> B
+  fun appImplR ctx A B = (insrt ctx A) ===> B
 
   fun appConjL (G || O) (A : prop) (B : prop) (C : prop) =
-    let val ctx' = updateCtx (updateCtx (G || O) A) B
+    let val ctx' = insrt (insrt (G || O) A) B
     in ctx' ===> C end
 
   fun appTopL (G || O) C = G || O ===> C
 
-  fun appTopImplL (G || O) B C = (updateCtx (G || O) B) ===> C
+  fun appTopImplL (G || O) B C = (insrt (G || O) B) ===> C
 
   fun appDisjImplL ctx D E B C =
-    let val ctx' = updateCtx (updateCtx ctx (D IMPL B)) (E IMPL B)
+    let val ctx' = insrt (insrt ctx (D IMPL B)) (E IMPL B)
     in ctx' ===> C end
 
   fun botImplL B G C = G ===> C
@@ -36,23 +36,23 @@ structure LJT = struct
   fun appInit G P = List.exists (fn x => x = P) G
 
   fun appDisjL (G || O) A B C =
-    let val ctx1 = updateCtx (G || O) A
-        val ctx2 = updateCtx (G || O) B
+    let val ctx1 = insrt (G || O) A
+        val ctx2 = insrt (G || O) B
     in (ctx1 ===> C, ctx2 ===> C) end
 
   val appConjImplL : context -> prop * prop * prop * prop -> sequent =
     fn (G || O) => fn (D : prop, E : prop, B : prop, C : prop) =>
-      let val ctx' = updateCtx (G || O) (D IMPL E IMPL B)
+      let val ctx' = insrt (G || O) (D IMPL E IMPL B)
       in ctx' ===> C end
 
   fun appAtomImplL (G || O) P B C : sequent =
     if List.exists (fn x => x = P) G
-    then (updateCtx (G || O) B) ===> C
+    then (insrt (G || O) B) ===> C
     else raise NoProof
 
   fun appImplImplL (G || O) D E B C =
-    let val ctx1 = updateCtx (updateCtx (G || O) (E IMPL B)) D
-        val ctx2 = updateCtx (G || O) B
+    let val ctx1 = insrt (insrt (G || O) (E IMPL B)) D
+        val ctx2 = insrt (G || O) B
     in (ctx1 ===> E, ctx2 ===> C) end
 
   fun search (G || [] ===> ATOM X) : derivation =
