@@ -61,7 +61,7 @@ structure Test = struct
 
     , ("[LJT] T provable"            , isCFProvable "T" mustBe true)
     , ("[LJT] /\\ left elimination"  , isCFProvable projConjL mustBe true)
-    (*, ("[LJT] /\\-commutative"       , isCFProvable conjComm mustBe true)*)
+    , ("[LJT] /\\-commutative"       , isCFProvable conjComm mustBe true)
     , ("[LJT] falsum not provable"   , isCFProvable "F" mustBe false)
     ]
 
