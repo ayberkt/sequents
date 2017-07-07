@@ -37,7 +37,7 @@ structure Test = struct
   val projConjR = "A /\\ B => B"
   val impFst    = "A => (B => A)"
   val impSnd    = "A => (B => A)"
-  val premisesComm = "(A => B => C) => (B => A => C)"
+  val flip = "(A => B => C) => (B => A => C)"
 
   val proofTests =
     [
@@ -50,7 +50,7 @@ structure Test = struct
     , ("[Inv] A => A"            , isProvable "A  => A"     mustBe true)
     , ("[Inv] random1"           , isProvable random1       mustBe true)
     , ("[Inv] random2"           , isProvable random2       mustBe true)
-    , ("[Inv] "                  , isProvable premisesComm  mustBe true)
+    , ("[Inv] "                  , isProvable flip          mustBe true)
     , ("[Inv] currying"          , isProvable currying      mustBe true)
     , ("[Inv] uncurrying"        , isProvable "(A => B => C) => (A /\\ B => C)" mustBe true)
     , ("[Inv] F"                 , isProvable "F"         mustBe false)
@@ -67,6 +67,7 @@ structure Test = struct
     , ("[LJT] /\\-elimination (right)"  , isCFProvable projConjR  mustBe true)
     , ("[LJT] A => B => A"              , isCFProvable impFst     mustBe true)
     , ("[LJT] A => B => B"              , isCFProvable impSnd     mustBe true)
+    , ("[LJT] A => B => B"              , isCFProvable flip       mustBe true)
     (*, ("[LJT] currying"              , isCFProvable currying mustBe true)*)
     , ("[LJT] falsum not provable"      , isCFProvable "F"        mustBe false)
     , ("[LJT] A not provable"           , isCFProvable "A"        mustBe false)
