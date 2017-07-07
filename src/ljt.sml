@@ -3,9 +3,6 @@ structure LJT = struct
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
   open Proofs
 
-  fun isAtom (ATOM _) = true
-    | isAtom _        = false
-
   fun isLeftSync (ATOM P) = true
     | isLeftSync ((ATOM P) IMPL B) = true
     | isLeftSync ((D IMPL E) IMPL B) = true
