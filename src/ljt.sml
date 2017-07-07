@@ -90,7 +90,15 @@ structure LJT = struct
         let val goal = G || (D DISJ E IMPL B::O) ===> C
             val newgoal = appDisjImplL (G || O) D E B C
         in OneInf (DisjImplL, right newgoal, goal) end
-    | right (G || [] ===> A DISJ B)         = raise Fail "TODO"
+    | right (G || [] ===> A DISJ B) =
+        let val goal = (G || [] ===> A DISJ B)
+        in
+          OneInf (DisjL, left G (A DISJ B), goal)
+          handle NoProof =>
+            (OneInf (DisjR1, right (G || [] ===> A), goal)
+             handle NoProof =>
+                 OneInf (DisjR2, right (G || [] ===> B), goal))
+        end
     | right (G || [] ===> C) = left G C
 
   and left _ _ = raise Fail "TODO"
@@ -104,10 +112,6 @@ structure LJT = struct
             val newgoal = appAtomImplL (G || []) (ATOM X, B, C)
         in OneInf (AtomImplL, search newgoal, ctx ===> C) end
     | search (G || [] ===> BOT) = raise NoProof
-    | search (G || [] ===> A DISJ B) =
-        (OneInf (DisjR1, search (G || [] ===> A), G || [] ===> A DISJ B)
-         handle NoProof =>
-          OneInf (DisjR2, search (G || [] ===> B), G || [] ===> A DISJ B))
     | search ((((D IMPL E) IMPL B::G) || []) ===> C) =
         let val goal = ((D IMPL E) IMPL B::G) || [] ===> C
             val (newgoal1, newgoal2) = appImplImplL (G || []) (D, E, B, C)
