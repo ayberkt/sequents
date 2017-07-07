@@ -55,9 +55,9 @@ structure LJT = struct
         val ctx2 = updateCtx (G || O) B
     in (ctx1 ===> E, ctx2 ===> C) end
 
-  fun search (G || [] ===> (ATOM X)) : derivation =
+  fun search (G || [] ===> ATOM X) : derivation =
         if appInit G (ATOM X)
-        then ZeroInf (Init, G || [] ===> (ATOM X))
+        then ZeroInf (Init, G || [] ===> ATOM X)
         else raise NoProof
     | search ((ATOM X IMPL B::G) || [] ===> C) =
         let val ctx = (ATOM X IMPL B::G) || []
