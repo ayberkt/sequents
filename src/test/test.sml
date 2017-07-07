@@ -32,7 +32,7 @@ structure Test = struct
   val disjComm  = "A \\/ B => B \\/ A"
   val random1   = "(A \\/ B => C) => ((A => C) /\\ (B => C))"
   val random2   = "((A \\/ B \\/ C) => D) => ((A => D) /\\ (B => D) /\\ (C => D))"
-  val currying     = "(A /\\ B => C) => (A => B => C)"
+  val curry     = "(A /\\ B => C) => (A => B => C)"
   val projConjL = "A /\\ B => A"
   val projConjR = "A /\\ B => B"
   val impFst    = "A => (B => A)"
@@ -51,8 +51,8 @@ structure Test = struct
     , ("[Inv] random1"           , isProvable random1       mustBe true)
     , ("[Inv] random2"           , isProvable random2       mustBe true)
     , ("[Inv] "                  , isProvable flip          mustBe true)
-    , ("[Inv] currying"          , isProvable currying      mustBe true)
-    , ("[Inv] uncurrying"        , isProvable "(A => B => C) => (A /\\ B => C)" mustBe true)
+    , ("[Inv] curry"          , isProvable curry      mustBe true)
+    , ("[Inv] uncurry"        , isProvable "(A => B => C) => (A /\\ B => C)" mustBe true)
     , ("[Inv] F"                 , isProvable "F"         mustBe false)
     , ("[Inv] A => B"            , isProvable ("A => B")  mustBe false)
     , ("[Inv] A /\\ A"           , isProvable ("A /\\ A") mustBe false)
@@ -67,8 +67,9 @@ structure Test = struct
     , ("[LJT] /\\-elimination (right)"  , isCFProvable projConjR  mustBe true)
     , ("[LJT] A => B => A"              , isCFProvable impFst     mustBe true)
     , ("[LJT] A => B => B"              , isCFProvable impSnd     mustBe true)
-    (*, ("[LJT] A => B => B"              , isCFProvable flip       mustBe true)*)
-    (*, ("[LJT] currying"              , isCFProvable currying mustBe true)*)
+    , ("[LJT] random1"                  , isCFProvable random1    mustBe true)
+    , ("[LJT] A => B => B"              , isCFProvable flip       mustBe true)
+    , ("[LJT] curry"                    , isCFProvable curry      mustBe true)
     , ("[LJT] falsum not provable"      , isCFProvable "F"        mustBe false)
     , ("[LJT] A not provable"           , isCFProvable "A"        mustBe false)
     ]
