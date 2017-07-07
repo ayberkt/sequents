@@ -84,10 +84,12 @@ structure LJT = struct
     | search (G || (BOT::O) ===> C) =
         ZeroInf (BotL, G || (BOT::O) ===> C)
     | search (G || (D CONJ E IMPL B::O) ===> C) =
-        let
-          val goal = G || (D CONJ E IMPL B::O) ===> C
-          val newgoal = appConjImplL (G || O) (D, E, B, C)
+        let val goal = G || (D CONJ E IMPL B::O) ===> C
+            val newgoal = appConjImplL (G || O) (D, E, B, C)
         in OneInf (ConjImplL, search newgoal, goal) end
+    | search (G || (TOP IMPL B::O) ===> C) =
+        let val newgoal = appTopImplL (G || O) B C
+        in OneInf (TopImplL, search newgoal, G || (TOP IMPL B::O) ===> C) end
       (* Asynchronous right rules *)
     | search (G || O ===> A CONJ B) =
         let val goal = G || O ===> A CONJ B
