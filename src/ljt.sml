@@ -27,7 +27,7 @@ structure LJT = struct
 
   fun appTopImplL (G || O) B C = (updateCtx (G || O) B) ===> C
 
-  fun disjImplL ctx D E B C =
+  fun appDisjImplL ctx D E B C =
     let val ctx' = updateCtx (updateCtx ctx (D IMPL B)) (E IMPL B)
     in ctx' ===> C end
 
@@ -90,6 +90,10 @@ structure LJT = struct
     | search (G || (TOP IMPL B::O) ===> C) =
         let val newgoal = appTopImplL (G || O) B C
         in OneInf (TopImplL, search newgoal, G || (TOP IMPL B::O) ===> C) end
+    | search (G || (D DISJ E IMPL B::O) ===> C) =
+        let val goal = G || (D DISJ E IMPL B::O) ===> C
+            val newgoal = appDisjImplL (G || O) D E B C
+        in OneInf (DisjImplL, search newgoal, goal) end
       (* Asynchronous right rules *)
     | search (G || O ===> A CONJ B) =
         let val goal = G || O ===> A CONJ B
