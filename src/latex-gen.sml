@@ -1,13 +1,8 @@
 structure LaTeXGen = struct
   open InvCalc
-  structure U = Unparse
+  structure U   = Unparse
   structure TIO = TextIO
-
-  infixr 5 ||
-  infixr 4 ===>
-  infixr 6 CONJ
-  infixr 6 DISJ
-  infixr 6 IMPL
+  infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
 
   fun $ (f, x) = f x
   infix 0 $
