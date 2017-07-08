@@ -1,5 +1,6 @@
 structure SearchReport = struct
   open Syntax
+  open Utils
   open Color
 
   fun prProps' [] = ""
@@ -9,6 +10,8 @@ structure SearchReport = struct
   fun prProps ps = "[" ^ prProps' (List.rev ps) ^ "]"
 
   fun prSequent G O C =
-    format (Bright, White) ("• " ^ (prProps G) ^ "; " ^ (prProps O) ^ "  ---->  " ^ (Syntax.pretty C))
+    format (Bright, White) ((prProps G) ^ "; " ^ (prProps O) ^ "  ---->  " ^ (Syntax.pretty C))
+
+  fun printSequent G O C = printLn ("• " ^ (prSequent G O C))
 
 end

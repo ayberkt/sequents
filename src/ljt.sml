@@ -27,7 +27,7 @@ structure LJT = struct
      ZeroInf (BotL, (BOT::G) || O ===> C))
 
   fun concludeWithInit (G || O) C =
-    (prRule "  -- Conclude proof with init.";
+    (prRule ("  -- Proved " ^ (prSequent G O C) ^ " using init.");
      ZeroInf (Init, G || O ===> C))
 
   fun insrt (G || O) (ATOM X)  = ((ATOM X)::G) || O
@@ -110,31 +110,31 @@ structure LJT = struct
   fun right (G || O ===> TOP) : derivation = ZeroInf (TopR, G || O ===> TOP)
     | right (G || O ===> A CONJ B) =
         let
-          val _ = printLn (prSequent G O (A CONJ B))
+          val _ = printSequent G O (A CONJ B)
           val goal = G || O ===> A CONJ B
           val (newgoal1, newgoal2) = appConjR (G || O) A B
         in TwoInf (ConjR, right newgoal1, right newgoal2, goal) end
     | right (G || O ===> A IMPL B) =
         let
-          val _ = printLn (prSequent G O (A IMPL B))
+          val _ = printSequent G O (A IMPL B)
           val newgoal = appImplR (G || O) A B
         in OneInf (ImplR, right newgoal, G || O ===> A IMPL B) end
     | right (G || (A CONJ B::O) ===> C) =
         let
           val goal = (A CONJ B::G) || O ===> C
-          val _ = printLn (prSequent G (A CONJ B::O) C)
+          val _ = printSequent G (A CONJ B::O) C
           val newgoal = appConjL (G || O) A B C
         in OneInf (ConjL, right newgoal, goal) end
     | right (G || (BOT::O) ===> C) = concludeWithBotL (G || O) C
     | right (G || (A DISJ B::O) ===> C) =
         let
-          val _ = printLn (prSequent G (A DISJ B::O) C)
+          val _ = printSequent G (A DISJ B::O) C
           val goal = G || (A DISJ B::O) ===> C
           val (newgoal1, newgoal2) = appDisjL (G || O) (A, B, C)
         in TwoInf (DisjL, right newgoal1, right newgoal2, goal) end
     | right (G || (TOP IMPL B::O) ===> C) =
         let
-          val _ = printLn (prSequent G (TOP IMPL B::O) C)
+          val _ = printSequent G (TOP IMPL B::O) C
           val newgoal = appTopImplL (G || O) B C
         in OneInf (TopImplL, right newgoal, G || (TOP IMPL B::O) ===> C) end
     | right (G || (BOT IMPL B::O) ===> C) =
@@ -145,7 +145,7 @@ structure LJT = struct
             val newgoal = appConjImplL (G || O) (D, E, B, C)
         in OneInf (ConjImplL, right newgoal, goal) end
     | right (G || (D DISJ E IMPL B::O) ===> C) =
-        let val _ = printLn (prSequent G (D DISJ E IMPL B::O) C)
+        let val _ = printSequent G (D DISJ E IMPL B::O) C
             val goal = G || (D DISJ E IMPL B::O) ===> C
             val newgoal = appDisjImplL (G || O) D E B C
         in OneInf (DisjImplL, right newgoal, goal) end
@@ -168,7 +168,7 @@ structure LJT = struct
   and eliminate (ATOM Y) (ATOM X, ctx)  =
         if X = Y
         then
-          let val _ = printLn (prSequent (ATOM X::ctx) [] (ATOM Y)) in
+          let val _ = printSequent (ATOM X::ctx) [] (ATOM Y) in
             SOME (concludeWithInit ((ATOM X::ctx) || []) (ATOM Y))
           end
         else
@@ -177,7 +177,7 @@ structure LJT = struct
           else NONE
     | eliminate _ (ATOM X, _) = NONE
     | eliminate C (ATOM X IMPL B, ctx) =
-        let val _ = printLn (prSequent (ATOM X IMPL B::ctx) [] C)
+        let val _ = printSequent (ATOM X IMPL B::ctx) [] C
             val goal = (ATOM X IMPL B::ctx) || [] ===> C
             val newgoal = appAtomImplL ctx (ATOM X, B, C)
         in
