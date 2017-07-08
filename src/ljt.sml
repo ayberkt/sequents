@@ -5,6 +5,7 @@ structure LJT = struct
   structure L = List
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
   open Proofs
+  open Color
 
   fun isLeftSync (ATOM _) = true
     | isLeftSync ((ATOM _) IMPL _) = true
@@ -17,12 +18,17 @@ structure LJT = struct
 
   fun prCtxs cs = "[" ^ prCtxs' cs ^ "]"
 
+  fun prRule s = printLn (format (Bright, Yellow) s)
 
   exception NoProof
 
-  fun concludeWithBotL (G || O) C = ZeroInf (BotL, (BOT::G) || O ===> C)
+  fun concludeWithBotL (G || O) C =
+    (prRule "  -- Conclude proof with ⊥L.";
+     ZeroInf (BotL, (BOT::G) || O ===> C))
 
-  fun concludeWithInit (G || O) C = ZeroInf (Init, G || O ===> C)
+  fun concludeWithInit (G || O) C =
+    (prRule "  -- Conclude proof with init.";
+     ZeroInf (Init, G || O ===> C))
 
   fun insrt (G || O) (ATOM X)  = ((ATOM X)::G) || O
     | insrt (G || O) TOP = G || O
@@ -34,28 +40,28 @@ structure LJT = struct
     | insrt (G || O) (A DISJ B) = G || (A DISJ B::O)
 
   fun appConjR (G || O) A B =
-    (printLn "  -- Apply ∧R.";
+    (prRule "  -- Apply ∧R.";
      (G || O ===> A, G || O ===> B))
 
   fun appImplR ctx A B =
-    (printLn "  -- Apply ⊃R.";
+    (prRule "  -- Apply ⊃R.";
      (insrt ctx A) ===> B)
 
   fun appConjL (G || O) (A : prop) (B : prop) (C : prop) =
     let
-      val _ = printLn "  -- Apply ∧L."
+      val _ = prRule "  -- Apply ∧L."
       val ctx' = insrt (insrt (G || O) A) B
     in ctx' ===> C end
 
   fun appTopL (G || O) C =
-    (printLn "Apply ⊤L."; G || O ===> C)
+    (prRule "Apply ⊤L."; G || O ===> C)
 
   fun appTopImplL (G || O) B C =
-    (printLn "  -- Apply ⊤⊃L.";
+    (prRule "  -- Apply ⊤⊃L.";
      (insrt (G || O) B) ===> C)
 
   fun appDisjImplL ctx D E B C =
-    (printLn "  -- Apply ∨⊃L.";
+    (prRule "  -- Apply ∨⊃L.";
      (insrt (insrt ctx (D IMPL B)) (E IMPL B)) ===> C)
 
   fun isImpl (_ IMPL _) = true
@@ -74,19 +80,19 @@ structure LJT = struct
   val appDisjL : context -> prop * prop * prop -> sequent * sequent =
     fn (G || O) => fn (A, B, C) =>
       let
-        val _ = printLn "  -- Apply ∨L."
+        val _ = prRule "  -- Apply ∨L."
         val ctx1 = insrt (G || O) A
         val ctx2 = insrt (G || O) B
       in (ctx1 ===> C, ctx2 ===> C) end
 
   val appConjImplL : context -> prop * prop * prop * prop -> sequent =
     fn (G || O) => fn (D, E, B, C) =>
-      (printLn "  -- Apply ∧⊃L.";
+      (prRule "  -- Apply ∧⊃L.";
        (insrt (G || O) (D IMPL (E IMPL B))) ===> C)
 
   val appAtomImplL  : prop list -> prop * prop * prop -> sequent =
       fn G => fn (P, B, C) =>
-        let val _ = printLn "  -- Apply P⊃L." in
+        let val _ = prRule "  -- Apply P⊃L." in
           if List.exists (fn x => x = P) G
           then (insrt (G || []) B) ===> C
           else raise NoProof
