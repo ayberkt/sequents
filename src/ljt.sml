@@ -32,8 +32,7 @@ structure LJT = struct
   fun appTopImplL (G || O) B C = (insrt (G || O) B) ===> C
 
   fun appDisjImplL ctx D E B C =
-    let val ctx' = insrt (insrt ctx (D IMPL B)) (E IMPL B)
-    in ctx' ===> C end
+    (insrt (insrt ctx (D IMPL B)) (E IMPL B)) ===> C
 
   fun isImpl (_ IMPL _) = true
     | isImpl _ = false
@@ -43,9 +42,6 @@ structure LJT = struct
   fun allCtxs G =
     L.map (fn i => (L.nth (G, i), except G i)) (range ((L.length G)-1))
 
-
-  fun appInit G P = List.exists (fn x => x = P) G
-
   val appDisjL : context -> prop * prop * prop -> sequent * sequent =
     fn (G || O) => fn (A, B, C) =>
       let val ctx1 = insrt (G || O) A
@@ -53,14 +49,13 @@ structure LJT = struct
       in (ctx1 ===> C, ctx2 ===> C) end
 
   val appConjImplL : context -> prop * prop * prop * prop -> sequent =
-    fn (G || O) => fn (D : prop, E : prop, B : prop, C : prop) =>
-      let val ctx' = insrt (G || O) (D IMPL E IMPL B)
-      in ctx' ===> C end
+    fn (G || O) => fn (D, E, B, C) =>
+      (insrt (G || O) (D IMPL (E IMPL B))) ===> C
 
-  val appAtomImplL  : context -> prop * prop * prop -> sequent =
-    fn (G || O) => fn (P, B, C) =>
+  val appAtomImplL  : prop list -> prop * prop * prop -> sequent =
+    fn G => fn (P, B, C) =>
       if List.exists (fn x => x = P) G
-      then (insrt (G || O) B) ===> C
+      then (insrt (G || []) B) ===> C
       else raise NoProof
 
   val appImplImplL : context
@@ -114,8 +109,7 @@ structure LJT = struct
         end
     | right (G || [] ===> C) = left G C
 
-  and left G BOT = raise NoProof
-    | left G C =
+  and left G C =
        case getSome (eliminate C) (allCtxs G) of
           SOME d => d
         | NONE => raise NoProof
@@ -124,10 +118,10 @@ structure LJT = struct
         if X = Y
         then SOME (concludeWithInit ((ATOM X::ctx) || []) (ATOM Y))
         else NONE
-    | eliminate _ (ATOM X, ctx) = NONE
+    (*| eliminate (ATOM _) _ = NONE*)
     | eliminate C (ATOM X IMPL B, ctx) =
         let val goal = (ATOM X IMPL B::ctx) || [] ===> C
-            val newgoal = appAtomImplL (ctx || []) (ATOM X, B, C)
+            val newgoal = appAtomImplL ctx (ATOM X, B, C)
         in
           SOME (OneInf (AtomImplL, right newgoal, goal))
         end
@@ -138,17 +132,6 @@ structure LJT = struct
     | eliminate _ _ = NONE
 
   fun search (G || O  ===> C) = right (G || O ===> C)
-
-  (*fun search (G || [] ===> ATOM X) : derivation =
-        if appInit G (ATOM X)
-        then ZeroInf (Init, G || [] ===> ATOM X)
-        else raise NoProof
-    | search ((ATOM X IMPL B::G) || [] ===> C) =
-        let val ctx = (ATOM X IMPL B::G) || []
-            val newgoal = appAtomImplL (G || []) (ATOM X, B, C)
-        in OneInf (AtomImplL, search newgoal, ctx ===> C) end
-    | search (G || [] ===> BOT) = raise NoProof
-    | search ((((D IMPL E) IMPL B::G) || []) ===> C) = *)
 
   fun prove (A : prop) : derivation option =
     SOME (search ([] || [] ===> A))
