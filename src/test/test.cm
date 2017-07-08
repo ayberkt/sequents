@@ -1,4 +1,5 @@
 Group is
   $/basis.cm
+  ../../lib/sml-colors/colors.cm
   ../sequents.cm
   test.sml
