@@ -32,6 +32,7 @@ structure Test = struct
 
   val conjAssoc = "A /\\ (B /\\ C) => (A /\\ B) /\\ C"
   val conjComm  = "A /\\ B => B /\\ A"
+  val implTrans = "(A => B) => (B => C) => (A => C)"
   val disjComm  = "A \\/ B => B \\/ A"
   val random1   = "(A \\/ B => C) => ((A => C) /\\ (B => C))"
   val random2   = "((A \\/ B \\/ C) => D) => ((A => D) /\\ (B => D) /\\ (C => D))"
@@ -45,6 +46,7 @@ structure Test = struct
   val tripleNeg = "(((A => F) => F) => F) => (A => F)"
   val long = "(((A => B) => C) => D) => (((A => B) => C) => D)"
   val long2 = "(((((A => B) => C) => D) => E) => F) => ((((A => B) => C) => D) => E) => F"
+  val verylong = "(((((A => B) => C) => D) => E) => F) => (((((A => B) ==> C) => D) => E) => F) \\/ (((((A => B) => C) => D) => E) => F)"
   val glivenko = "((((A => B) => A) => A) => F) => F"
 
   val proofTests =
@@ -68,11 +70,11 @@ structure Test = struct
     , ("[Inv] A \\/ B"           , isProvable ("A \\/ B") mustBe false)*)
 
       ("[LJT] T provable"               , isCFProvable "T"        mustBe true)
-    , ("[LJT] /\\ left elimination"     , isCFProvable projConjL  mustBe true)
-    , ("[LJT] /\\-commutative"          , isCFProvable conjComm   mustBe true)
-    , ("[LJT] \\/-commutative"          , isCFProvable disjComm   mustBe true)
-    , ("[LJT] /\\-elimination (left)"   , isCFProvable projConjL  mustBe true)
-    , ("[LJT] /\\-elimination (right)"  , isCFProvable projConjR  mustBe true)
+    , ("[LJT] A /\\ B => A"             , isCFProvable projConjL  mustBe true)
+    , ("[LJT] A /\\ B => B"             , isCFProvable projConjR  mustBe true)
+    , ("[LJT] Commutativity of /\\"     , isCFProvable conjComm   mustBe true)
+    , ("[LJT] Transitivity of =>"       , isCFProvable implTrans  mustBe true)
+    , ("[LJT] Commutativity \\/"        , isCFProvable disjComm   mustBe true)
     , ("[LJT] A => B => A"              , isCFProvable impFst     mustBe true)
     , ("[LJT] A => B => B"              , isCFProvable impSnd     mustBe true)
     , ("[LJT] flip"                     , isCFProvable flip       mustBe true)
@@ -84,6 +86,7 @@ structure Test = struct
     , ("[LJT] triple negation"          , isCFProvable tripleNeg  mustBe true)
     , ("[LJT] long"                     , isCFProvable long       mustBe true)
     , ("[LJT] long 2"                   , isCFProvable long2      mustBe true)
+    (*, ("[LJT] very long"                , isCFProvable verylong   mustBe true)*)
     , ("[LJT] Glivenko's theorem"       , isCFProvable glivenko   mustBe true)
     (*, ("[LJT] F not provable"           , isCFProvable "F"        mustBe false)*)
     (*, ("[LJT] A not provable"           , isCFProvable "A"        mustBe false)*)
