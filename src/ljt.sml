@@ -191,8 +191,11 @@ structure LJT = struct
         end
     | eliminate C ((D IMPL E) IMPL B, ctx) =
         let val goal = ((D IMPL E) IMPL B::ctx) || [] ===> C
-            val (newgoal1, newgoal2) = appImplImplL (ctx || []) (D, E, B, C)
-        in SOME (TwoInf (ImplImplL, right newgoal1, right newgoal2, goal)) end
+        in
+          case appImplImplL (ctx || []) (D, E, B, C) of
+            (newgoal1, newgoal2) => SOME (TwoInf (ImplImplL, right newgoal1, right newgoal2, goal))
+          handle NoProof => NONE
+        end
     | eliminate _ _ = NONE
 
   fun search (G || O  ===> C) = right (G || O ===> C)
