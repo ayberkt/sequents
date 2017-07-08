@@ -9,6 +9,5 @@ Group is
   ../lib/sml-unparse/unparse.cm
   proofs.sml
   search-report.sml
-  inversion-calc.sml
   ljt.sml
   latex-gen.sml

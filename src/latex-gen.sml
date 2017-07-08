@@ -1,5 +1,6 @@
 structure LaTeXGen = struct
-  open InvCalc
+  open Syntax
+  open Proofs
   structure U   = Unparse
   structure TIO = TextIO
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
