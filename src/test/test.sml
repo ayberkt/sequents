@@ -36,6 +36,7 @@ structure Test = struct
   val disjComm  = "A \\/ B => B \\/ A"
   val random1   = "(A \\/ B => C) => ((A => C) /\\ (B => C))"
   val random2   = "((A \\/ B \\/ C) => D) => ((A => D) /\\ (B => D) /\\ (C => D))"
+  val random3   = "((A => B) => C) => D => D \\/ D"
   val curry     = "(A /\\ B => C) => (A => B => C)"
   val uncurry   = "(A => B => C) => (A /\\ B => C)"
   val projConjL = "A /\\ B => A"
@@ -48,6 +49,8 @@ structure Test = struct
   val long2 = "(((((A => B) => C) => D) => E) => F) => ((((A => B) => C) => D) => E) => F"
   val verylong = "(((((A => B) => C) => D) => E) => F) => (((((A => B) => C) => D) => E) => F) \\/ (((((A => B) => C) => D) => E) => F)"
   val glivenko = "((((A => B) => A) => A) => F) => F"
+  val duality1 = "(A => F) \\/ (B => F) => (A /\\ B => F)"
+  val duality2 = "((T => F) => F) /\\ (F => T => F)"
 
   val proofTests =
     [
@@ -78,14 +81,17 @@ structure Test = struct
     , ("[LJT] A => B => A"              , isCFProvable impFst     mustBe true)
     , ("[LJT] A => B => B"              , isCFProvable impSnd     mustBe true)
     , ("[LJT] flip"                     , isCFProvable flip       mustBe true)
-    , ("[LJT] random 1"                 , isCFProvable random1    mustBe true)
-    , ("[LJT] random 2"                 , isCFProvable random2    mustBe true)
+    , ("[LJT] Random (1)"               , isCFProvable random1    mustBe true)
+    , ("[LJT] Random (2)"               , isCFProvable random2    mustBe true)
+    , ("[LJT] Random (3)"               , isCFProvable random3    mustBe true)
+    , ("[LJT] Duality (1)"              , isCFProvable duality1   mustBe true)
+    , ("[LJT] Duality (2)"              , isCFProvable duality2   mustBe true)
     , ("[LJT] A => B => B"              , isCFProvable flip       mustBe true)
     , ("[LJT] curry"                    , isCFProvable curry      mustBe true)
     , ("[LJT] uncurry"                  , isCFProvable uncurry    mustBe true)
     , ("[LJT] triple negation"          , isCFProvable tripleNeg  mustBe true)
-    , ("[LJT] long"                     , isCFProvable long       mustBe true)
-    , ("[LJT] long 2"                   , isCFProvable long2      mustBe true)
+    , ("[LJT] Long implication (1)"     , isCFProvable long       mustBe true)
+    , ("[LJT] Long implication (2)"     , isCFProvable long2      mustBe true)
     , ("[LJT] Longer implication"       , isCFProvable verylong   mustBe true)
     , ("[LJT] Glivenko's theorem"       , isCFProvable glivenko   mustBe true)
     (*, ("[LJT] F not provable"           , isCFProvable "F"        mustBe false)*)
