@@ -41,6 +41,9 @@ structure Test = struct
   val impFst    = "A => (B => A)"
   val impSnd    = "A => (B => A)"
   val flip = "(A => B => C) => (B => A => C)"
+  val tripleNeg = "(((A => F) => F) => F) => (A => F)"
+  val long = "(((A => B) => C) => D) => (((A => B) => C) => D)"
+  val long2 = "(((((A => B) => C) => D) => E) => F) => ((((A => B) => C) => D) => E) => F"
 
   val proofTests =
     [
@@ -71,12 +74,15 @@ structure Test = struct
     , ("[LJT] A => B => A"              , isCFProvable impFst     mustBe true)
     , ("[LJT] A => B => B"              , isCFProvable impSnd     mustBe true)
     , ("[LJT] flip"                     , isCFProvable flip       mustBe true)
-    , ("[LJT] random 1"                  , isCFProvable random1    mustBe true)
-    , ("[LJT] random 2"                  , isCFProvable random2    mustBe true)
+    , ("[LJT] random 1"                 , isCFProvable random1    mustBe true)
+    , ("[LJT] random 2"                 , isCFProvable random2    mustBe true)
     , ("[LJT] A => B => B"              , isCFProvable flip       mustBe true)
     , ("[LJT] curry"                    , isCFProvable curry      mustBe true)
-    , ("[LJT] uncurry"                    , isCFProvable uncurry      mustBe true)
-    , ("[LJT] falsum not provable"      , isCFProvable "F"        mustBe false)
+    , ("[LJT] uncurry"                  , isCFProvable uncurry    mustBe true)
+    , ("[LJT] triple negation"          , isCFProvable tripleNeg  mustBe true)
+    , ("[LJT] long"                     , isCFProvable long       mustBe true)
+    , ("[LJT] long 2"                   , isCFProvable long2      mustBe true)
+    (*, ("[LJT] F not provable"           , isCFProvable "F"        mustBe false)*)
     (*, ("[LJT] A not provable"           , isCFProvable "A"        mustBe false)*)
     ]
 

@@ -1,4 +1,7 @@
 structure Utils = struct
+
+  fun printLn s = print (s ^ "\n")
+
   fun catOpts [] = []
     | catOpts (SOME x::os) = x::(catOpts os)
     | catOpts (NONE::os) = catOpts os
@@ -18,4 +21,7 @@ structure Utils = struct
         (case f x of
           NONE => getSome f xs
         | x => x)
+
+
+  
 end
