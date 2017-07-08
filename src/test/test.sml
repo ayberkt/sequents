@@ -1,5 +1,7 @@
 structure Test = struct
-  open InvCalc
+  (*open InvCalc*)
+  open Utils
+  structure S = String
   open TextIO
 
   fun $ (f, x) = f x
@@ -24,7 +26,7 @@ structure Test = struct
       ]*)
     ]
 
-  val isProvable = isSome o prove o Parser.parse
+  (*val isProvable = isSome o prove o Parser.parse*)
   val isCFProvable = isSome o LJT.prove o Parser.parse
 
   val conjAssoc = "A /\\ (B /\\ C) => (A /\\ B) /\\ C"
@@ -33,6 +35,7 @@ structure Test = struct
   val random1   = "(A \\/ B => C) => ((A => C) /\\ (B => C))"
   val random2   = "((A \\/ B \\/ C) => D) => ((A => D) /\\ (B => D) /\\ (C => D))"
   val curry     = "(A /\\ B => C) => (A => B => C)"
+  val uncurry   = "(A => B => C) => (A /\\ B => C)"
   val projConjL = "A /\\ B => A"
   val projConjR = "A /\\ B => B"
   val impFst    = "A => (B => A)"
@@ -41,7 +44,7 @@ structure Test = struct
 
   val proofTests =
     [
-      ("[Inv] /\\-commutative"   , isProvable conjComm      mustBe true)
+      (*("[Inv] /\\-commutative"   , isProvable conjComm      mustBe true)
     , ("[Inv] A /\\ B => A"      , isProvable projConjL     mustBe true)
     , ("[Inv] A /\\ B => B"      , isProvable projConjR     mustBe true)
     , ("[Inv] /\\-associative"   , isProvable conjAssoc     mustBe true)
@@ -57,9 +60,9 @@ structure Test = struct
     , ("[Inv] A => B"            , isProvable ("A => B")  mustBe false)
     , ("[Inv] A /\\ A"           , isProvable ("A /\\ A") mustBe false)
     , ("[Inv] A /\\ B"           , isProvable ("A /\\ B") mustBe false)
-    , ("[Inv] A \\/ B"           , isProvable ("A \\/ B") mustBe false)
+    , ("[Inv] A \\/ B"           , isProvable ("A \\/ B") mustBe false)*)
 
-    , ("[LJT] T provable"               , isCFProvable "T"        mustBe true)
+      ("[LJT] T provable"               , isCFProvable "T"        mustBe true)
     , ("[LJT] /\\ left elimination"     , isCFProvable projConjL  mustBe true)
     , ("[LJT] /\\-commutative"          , isCFProvable conjComm   mustBe true)
     , ("[LJT] \\/-commutative"          , isCFProvable disjComm   mustBe true)
@@ -67,9 +70,12 @@ structure Test = struct
     , ("[LJT] /\\-elimination (right)"  , isCFProvable projConjR  mustBe true)
     , ("[LJT] A => B => A"              , isCFProvable impFst     mustBe true)
     , ("[LJT] A => B => B"              , isCFProvable impSnd     mustBe true)
-    , ("[LJT] random1"                  , isCFProvable random1    mustBe true)
+    , ("[LJT] flip"                     , isCFProvable flip       mustBe true)
+    , ("[LJT] random 1"                  , isCFProvable random1    mustBe true)
+    , ("[LJT] random 2"                  , isCFProvable random2    mustBe true)
     , ("[LJT] A => B => B"              , isCFProvable flip       mustBe true)
     , ("[LJT] curry"                    , isCFProvable curry      mustBe true)
+    , ("[LJT] uncurry"                    , isCFProvable uncurry      mustBe true)
     (*, ("[LJT] falsum not provable"      , isCFProvable "F"        mustBe false)*)
     (*, ("[LJT] A not provable"           , isCFProvable "A"        mustBe false)*)
     ]
@@ -95,7 +101,8 @@ structure Test = struct
      print $ " " ^ (prBool $ inp = out) ^ "\n";
      inp = out)
 
-  fun allSuccessful ts = List.foldr (fn (p, q) => p andalso q) true (mapi testSuccessful ts)
+  fun allSuccessful ts =
+    List.foldr (fn (p, q) => p andalso q) true (mapi testSuccessful ts)
 
   fun main (arg0, argv) =
     (if allSuccessful (unitTests ())
