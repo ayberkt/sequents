@@ -1,6 +1,7 @@
 structure Test = struct
   (*open InvCalc*)
   open Utils
+  open Color
   structure S = String
   open TextIO
 
@@ -86,8 +87,8 @@ structure Test = struct
     (*, ("[LJT] A not provable"           , isCFProvable "A"        mustBe false)*)
     ]
 
-  fun prBool true  = "\027[32mSUCCESS\027[0m"
-    | prBool false = "\027[31mFAILURE\027[0m"
+  fun prBool true  = format (Bright, Green) "SUCCESS"
+    | prBool false = format (Bright, Red) "FAILURE"
 
   fun printDots 0 = ()
     | printDots n = (print "."; printDots (n-1))
@@ -98,11 +99,11 @@ structure Test = struct
   val digits = S.size o Int.toString
 
   fun prLineNum n =
-    print $  (Int.toString n) ^ (mkSpace $ 4 - (digits n))
+    print $ (colorize LightBlue (Int.toString n)) ^ (mkSpace $ 4 - (digits n))
 
   fun testSuccessful (i, (dsc, (inp, out))) =
     (print $ (prLineNum (i+1); "| ");
-     print $ dsc ^ " ";
+     print $ format (Bright, White) (dsc ^ " ");
      printDots (60 - (String.size dsc));
      print $ " " ^ (prBool $ inp = out) ^ "\n";
      inp = out)
