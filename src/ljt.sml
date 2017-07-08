@@ -12,8 +12,6 @@ structure LJT = struct
     | isLeftSync ((_ IMPL _) IMPL _) = true
     | isLeftSync _ = false
 
-  fun printMsg s = printLn (format (Bright, Yellow) ("  -- " ^ s))
-
   exception NoProof
 
   fun concludeWithBotL (G || O) C =
@@ -168,7 +166,9 @@ structure LJT = struct
                  OneInf (DisjR2, right (G || [] ===> B), goal))
         end
     | right (G || [] ===> C) =
-        (printMsg "Will switch to left."; left G C)
+      (printSequent G [] C;
+       printMsg "Will switch to left.";
+       left G C)
 
   and left G C =
     case getSome (eliminate C) (allCtxs G) of
@@ -178,8 +178,7 @@ structure LJT = struct
   and eliminate (ATOM Y) (ATOM X, ctx)  =
         if X = Y
         then
-          (printMsg (X ^ " is equal to " ^ Y);
-           printSequent (ATOM X::ctx) [] (ATOM Y);
+          (printMsg (X ^ " ∈ " ^ (prProps (ATOM X::ctx)));
            SOME (concludeWithInit ((ATOM X::ctx) || []) (ATOM Y)))
         else NONE
     | eliminate _ (ATOM X, _) = NONE
@@ -192,11 +191,13 @@ structure LJT = struct
            handle NoProof => NONE
         end
     | eliminate C ((D IMPL E) IMPL B, ctx) =
-        let val goal = ((D IMPL E) IMPL B::ctx) || [] ===> C
+        let
+          val goal = ((D IMPL E) IMPL B::ctx) || [] ===> C
         in
           case appImplImplL (ctx || []) (D, E, B, C) of
             (newgoal1, newgoal2) =>
-              SOME (TwoInf (ImplImplL, right newgoal1, right newgoal2, goal))
+              (printMsg "Apply ⊃⊃L.";
+              SOME (TwoInf (ImplImplL, right newgoal1, right newgoal2, goal)))
           handle NoProof => NONE
         end
     | eliminate _ _ = (printLn "impossible case"; raise Fail "TODO")

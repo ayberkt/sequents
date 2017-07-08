@@ -14,4 +14,6 @@ structure SearchReport = struct
 
   fun printSequent G O C = printLn ("• " ^ (prSequent G O C))
 
+  fun printMsg s = printLn (format (Bright, Yellow) ("  -- " ^ s))
+
 end
