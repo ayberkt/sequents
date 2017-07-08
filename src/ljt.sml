@@ -181,13 +181,10 @@ structure LJT = struct
     | eliminate C (ATOM X IMPL B, ctx) =
         let val _ = printSequent (ATOM X IMPL B::ctx) [] C
             val goal = (ATOM X IMPL B::ctx) || [] ===> C
-            val mbnewgoal =
-              (SOME (appAtomImplL ctx (ATOM X, B, C))
-               handle NoProof => NONE)
         in
-          case mbnewgoal of
-            SOME newgoal => SOME (OneInf (AtomImplL, right newgoal, goal))
-          | NONE => NONE
+          (case appAtomImplL ctx (ATOM X, B, C) of
+             newgoal => SOME (OneInf (AtomImplL, right newgoal, goal)))
+           handle NoProof => NONE
         end
     | eliminate C ((D IMPL E) IMPL B, ctx) =
         let val goal = ((D IMPL E) IMPL B::ctx) || [] ===> C
