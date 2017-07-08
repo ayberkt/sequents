@@ -76,7 +76,7 @@ structure Test = struct
     , ("[LJT] A => B => B"              , isCFProvable flip       mustBe true)
     , ("[LJT] curry"                    , isCFProvable curry      mustBe true)
     , ("[LJT] uncurry"                    , isCFProvable uncurry      mustBe true)
-    (*, ("[LJT] falsum not provable"      , isCFProvable "F"        mustBe false)*)
+    , ("[LJT] falsum not provable"      , isCFProvable "F"        mustBe false)
     (*, ("[LJT] A not provable"           , isCFProvable "A"        mustBe false)*)
     ]
 
