@@ -18,16 +18,16 @@ structure LJT = struct
 
   fun prCtxs cs = "[" ^ prCtxs' cs ^ "]"
 
-  fun prRule s = printLn (format (Bright, Yellow) s)
+  fun printMsg s = printLn (format (Bright, Yellow) s)
 
   exception NoProof
 
   fun concludeWithBotL (G || O) C =
-    (prRule "  -- Conclude proof with ⊥L.";
+    (printMsg "  -- Conclude proof with ⊥L.";
      ZeroInf (BotL, (BOT::G) || O ===> C))
 
   fun concludeWithInit (G || O) C =
-    (prRule ("  -- Proved " ^ (prSequent G O C) ^ " using init.");
+    (printMsg ("  -- Proved " ^ (prSequent G O C) ^ " using init.");
      ZeroInf (Init, G || O ===> C))
 
   fun insrt (G || O) (ATOM X)  = ((ATOM X)::G) || O
@@ -40,28 +40,28 @@ structure LJT = struct
     | insrt (G || O) (A DISJ B) = G || (A DISJ B::O)
 
   fun appConjR (G || O) A B =
-    (prRule "  -- Apply ∧R.";
+    (printMsg "  -- Apply ∧R.";
      (G || O ===> A, G || O ===> B))
 
   fun appImplR ctx A B =
-    (prRule "  -- Apply ⊃R.";
+    (printMsg "  -- Apply ⊃R.";
      (insrt ctx A) ===> B)
 
   fun appConjL (G || O) (A : prop) (B : prop) (C : prop) =
     let
-      val _ = prRule "  -- Apply ∧L."
+      val _ = printMsg "  -- Apply ∧L."
       val ctx' = insrt (insrt (G || O) A) B
     in ctx' ===> C end
 
   fun appTopL (G || O) C =
-    (prRule "Apply ⊤L."; G || O ===> C)
+    (printMsg "Apply ⊤L."; G || O ===> C)
 
   fun appTopImplL (G || O) B C =
-    (prRule "  -- Apply ⊤⊃L.";
+    (printMsg "  -- Apply ⊤⊃L.";
      (insrt (G || O) B) ===> C)
 
   fun appDisjImplL ctx D E B C =
-    (prRule "  -- Apply ∨⊃L.";
+    (printMsg "  -- Apply ∨⊃L.";
      (insrt (insrt ctx (D IMPL B)) (E IMPL B)) ===> C)
 
   fun isImpl (_ IMPL _) = true
@@ -80,22 +80,24 @@ structure LJT = struct
   val appDisjL : context -> prop * prop * prop -> sequent * sequent =
     fn (G || O) => fn (A, B, C) =>
       let
-        val _ = prRule "  -- Apply ∨L."
+        val _ = printMsg "  -- Apply ∨L."
         val ctx1 = insrt (G || O) A
         val ctx2 = insrt (G || O) B
       in (ctx1 ===> C, ctx2 ===> C) end
 
   val appConjImplL : context -> prop * prop * prop * prop -> sequent =
     fn (G || O) => fn (D, E, B, C) =>
-      (prRule "  -- Apply ∧⊃L.";
+      (printMsg "  -- Apply ∧⊃L.";
        (insrt (G || O) (D IMPL (E IMPL B))) ===> C)
 
   val appAtomImplL  : prop list -> prop * prop * prop -> sequent =
       fn G => fn (P, B, C) =>
-        let val _ = prRule "  -- Apply P⊃L." in
+        let val _ = printMsg "  -- Apply P⊃L." in
           if List.exists (fn x => x = P) G
           then (insrt (G || []) B) ===> C
-          else raise NoProof
+          else
+            (printMsg ("  -- " ^ (Syntax.pretty P) ^ " ∉ " ^ prProps G);
+             raise NoProof)
         end
 
   val appImplImplL : context
@@ -179,9 +181,13 @@ structure LJT = struct
     | eliminate C (ATOM X IMPL B, ctx) =
         let val _ = printSequent (ATOM X IMPL B::ctx) [] C
             val goal = (ATOM X IMPL B::ctx) || [] ===> C
-            val newgoal = appAtomImplL ctx (ATOM X, B, C)
+            val mbnewgoal =
+              (SOME (appAtomImplL ctx (ATOM X, B, C))
+               handle NoProof => NONE)
         in
-          SOME (OneInf (AtomImplL, right newgoal, goal))
+          case mbnewgoal of
+            SOME newgoal => SOME (OneInf (AtomImplL, right newgoal, goal))
+          | NONE => NONE
         end
     | eliminate C ((D IMPL E) IMPL B, ctx) =
         let val goal = ((D IMPL E) IMPL B::ctx) || [] ===> C
