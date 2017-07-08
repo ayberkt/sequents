@@ -1,5 +1,7 @@
 structure LJT = struct
   open Syntax
+  open Utils
+  structure L = List
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
   open Proofs
 
@@ -11,6 +13,8 @@ structure LJT = struct
   exception NoProof
 
   fun concludeWithBotL (G || O) C = ZeroInf (BotL, (BOT::G) || O ===> C)
+
+  fun concludeWithInit (G || O) C = ZeroInf (Init, G || O ===> C)
 
   fun insrt (G || O) A =
     if isLeftSync A then (A::G) || O else G || (A::O)
@@ -30,6 +34,15 @@ structure LJT = struct
   fun appDisjImplL ctx D E B C =
     let val ctx' = insrt (insrt ctx (D IMPL B)) (E IMPL B)
     in ctx' ===> C end
+
+  fun isImpl (_ IMPL _) = true
+    | isImpl _ = false
+
+  fun except xs n = (List.take (xs, n)) @ (List.drop (xs, n+1))
+
+  fun allCtxs G =
+    L.map (fn i => (L.nth (G, i), except G i)) (range ((L.length G)-1))
+
 
   fun appInit G P = List.exists (fn x => x = P) G
 
@@ -101,9 +114,27 @@ structure LJT = struct
         end
     | right (G || [] ===> C) = left G C
 
-  and left _ _ = raise Fail "TODO"
+  and eliminate (ATOM Y) (ATOM X, ctx)  =
+        if X = Y
+        then SOME (concludeWithInit (ctx || []) (ATOM Y))
+        else NONE
+    | eliminate _ (ATOM X, ctx) = NONE
+    | eliminate C (ATOM X IMPL B, ctx) =
+        let
+          val goal = (ATOM X IMPL B::ctx) || [] ===> C
+          val newgoal = appAtomImplL (ctx || []) (ATOM X, B, C)
+        in
+          SOME (OneInf (AtomImplL, right newgoal, goal))
+        end
 
-  fun search (G || [] ===> ATOM X) : derivation =
+  and left G C =
+    case getSome (eliminate C) (allCtxs G) of
+      SOME d => d
+    | NONE => raise NoProof
+
+  fun search (G || O  ===> C) = right (G || O ===> C)
+
+  (*fun search (G || [] ===> ATOM X) : derivation =
         if appInit G (ATOM X)
         then ZeroInf (Init, G || [] ===> ATOM X)
         else raise NoProof
@@ -115,7 +146,7 @@ structure LJT = struct
     | search ((((D IMPL E) IMPL B::G) || []) ===> C) =
         let val goal = ((D IMPL E) IMPL B::G) || [] ===> C
             val (newgoal1, newgoal2) = appImplImplL (G || []) (D, E, B, C)
-        in TwoInf (ImplImplL, search newgoal1, search newgoal2, goal) end
+        in TwoInf (ImplImplL, search newgoal1, search newgoal2, goal) end*)
 
   fun prove (A : prop) : derivation option =
     SOME (search ([] || [] ===> A))
