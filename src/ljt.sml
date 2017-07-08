@@ -173,7 +173,7 @@ structure LJT = struct
   and left G C =
     case getSome (eliminate C) (allCtxs G) of
       SOME d => d
-    | NONE => raise NoProof
+    | NONE => (printMsg "Derivation not found"; raise NoProof)
 
   and eliminate (ATOM Y) (ATOM X, ctx)  =
         if X = Y
@@ -202,13 +202,12 @@ structure LJT = struct
         end
     | eliminate _ _ = (printLn "impossible case"; raise Fail "TODO")
 
-  fun search (G || O  ===> C) =
-    (printLn (format (Bright, Magenta) ("Theorem.  " ^ (prSequent G O C)));
-     right (G || O ===> C))
+  fun search C =
+    (printLn (format (Bright, Magenta) ("Theorem.  " ^ (prSequent [] [] C)));
+     (SOME (right ([] || [] ===> C))
+      handle NoProof => NONE))
 
-  fun prove (A : prop) : derivation option =
-    SOME (search ([] || [] ===> A))
-    handle NoProof => NONE
+  fun prove (A : prop) : derivation option = search A
 
 
 end
