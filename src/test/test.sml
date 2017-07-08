@@ -45,6 +45,7 @@ structure Test = struct
   val tripleNeg = "(((A => F) => F) => F) => (A => F)"
   val long = "(((A => B) => C) => D) => (((A => B) => C) => D)"
   val long2 = "(((((A => B) => C) => D) => E) => F) => ((((A => B) => C) => D) => E) => F"
+  val glivenko = "((((A => B) => A) => A) => F) => F"
 
   val proofTests =
     [
@@ -83,6 +84,7 @@ structure Test = struct
     , ("[LJT] triple negation"          , isCFProvable tripleNeg  mustBe true)
     , ("[LJT] long"                     , isCFProvable long       mustBe true)
     , ("[LJT] long 2"                   , isCFProvable long2      mustBe true)
+    , ("[LJT] Glivenko's theorem"       , isCFProvable glivenko   mustBe true)
     (*, ("[LJT] F not provable"           , isCFProvable "F"        mustBe false)*)
     (*, ("[LJT] A not provable"           , isCFProvable "A"        mustBe false)*)
     ]
