@@ -7,6 +7,7 @@ Group is
   utils.sml
   syntax.sml
   ../lib/sml-unparse/unparse.cm
+  ../lib/sml-colors/colors.cm
   proofs.sml
   search-report.sml
   ljt.sml
