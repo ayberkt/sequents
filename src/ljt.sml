@@ -114,6 +114,12 @@ structure LJT = struct
         end
     | right (G || [] ===> C) = left G C
 
+  and left G BOT = raise NoProof
+    | left G C =
+       case getSome (eliminate C) (allCtxs G) of
+          SOME d => d
+        | NONE => raise NoProof
+
   and eliminate (ATOM Y) (ATOM X, ctx)  =
         if X = Y
         then SOME (concludeWithInit ((ATOM X::ctx) || []) (ATOM Y))
@@ -130,11 +136,6 @@ structure LJT = struct
             val (newgoal1, newgoal2) = appImplImplL (ctx || []) (D, E, B, C)
         in SOME (TwoInf (ImplImplL, right newgoal1, right newgoal2, goal)) end
     | eliminate _ _ = NONE
-
-  and  left G C =
-        case getSome (eliminate C) (allCtxs G) of
-          SOME d => d
-        | NONE => raise NoProof
 
   fun search (G || O  ===> C) = right (G || O ===> C)
 
