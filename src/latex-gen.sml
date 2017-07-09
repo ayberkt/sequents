@@ -44,11 +44,11 @@ structure LaTeXGen = struct
       | ruleName' BotL       = "{\\bot}L"
       | ruleName' ImplL      = "{\\supset}L"
       | ruleName' AtomImplL  = "P{\\supset}L"
-      | ruleName' ConjImplL  = "\\wedge\\supset L"
-      | ruleName' TopImplL   = "\\top\\supset L"
-      | ruleName' DisjImplL  = "\\vee\\supset L"
-      | ruleName' BotImplL   = "\\bot\\supset L"
-      | ruleName' ImplImplL  = "\\supset\\supset L"
+      | ruleName' ConjImplL  = "{\\wedge\\supset}L"
+      | ruleName' TopImplL   = "{\\top\\supset}L"
+      | ruleName' DisjImplL  = "{\\vee\\supset}L"
+      | ruleName' BotImplL   = "{\\bot\\supset}L"
+      | ruleName' ImplImplL  = "{\\supset\\supset}L"
   in
     fun ruleName r = "\\rlname{" ^ ruleName' r ^ "}"
   end
