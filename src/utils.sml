@@ -31,4 +31,16 @@ structure Utils = struct
     | intersperse y [x] = [x]
     | intersperse y (x::xs)=x::y::(intersperse y xs)
 
+
+  val replicateStr : int -> string -> string =
+    let
+      fun replicateStr' 0 s = ""
+        | replicateStr' n s = s ^ replicateStr' (n-1) s
+    in
+      fn n => fn s =>
+        if n >= 0
+        then replicateStr' n s
+        else raise Fail "replicateStr given negative number"
+    end
+
 end
