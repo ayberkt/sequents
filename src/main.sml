@@ -58,7 +58,7 @@ structure Main = struct
             ParseError s => (print ("Error: " ^ s ^ "\n"); raise Fail "foo")
         val flgs = parseArgs defaultFlgs argv
         val result =
-          LJT.prove prop
+          LJT.prove (#shouldGenLaTeX flgs) prop
           handle Fail s =>
             (printLn ("Internal error: " ^ s);
              OS.Process.exit OS.Process.failure)

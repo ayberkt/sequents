@@ -7,12 +7,24 @@ structure LJT = struct
   open Proofs
   open Color
 
+  val shouldLog = ref true
+
   fun isLeftSync (ATOM _) = true
     | isLeftSync ((ATOM _) IMPL _) = true
     | isLeftSync ((_ IMPL _) IMPL _) = true
     | isLeftSync _ = false
 
   exception NoProof
+
+  fun printMsg s =
+    if !shouldLog
+    then printLn (format (Bright, Yellow) ("  -- " ^ s))
+    else ()
+
+  fun printSequent G O C =
+    if !shouldLog
+    then printLn ("• " ^ (prSequent G O C))
+    else ()
 
   fun concludeWithBotL (G || O) C =
     (printMsg "Ex falso quodlibet 💥 . Conclude proof with ⊥L.";
@@ -67,12 +79,7 @@ structure LJT = struct
 
   fun allCtxs [] = []
     | allCtxs G =
-    let
-      (*val _ = (printLn o prCtxs) result*)
-      val result = L.map (fn i => (L.nth (G, i), except G i)) (range ((L.length G)-1))
-    in
-      result
-    end
+        L.map (fn i => (L.nth (G, i), except G i)) (range ((L.length G)-1))
 
   val appDisjL : context -> prop * prop * prop -> sequent * sequent =
     fn (G || O) => fn (A, B, C) =>
@@ -204,11 +211,14 @@ structure LJT = struct
     | eliminate _ _ = (printLn "impossible case"; raise Fail "TODO")
 
   fun search C =
-    (printLn (format (Bright, Magenta) ("Theorem.  " ^ (prSequent [] [] C)));
-     (SOME (right ([] || [] ===> C))
-      handle NoProof => NONE))
+    (SOME (right ([] || [] ===> C))
+      handle NoProof => NONE)
 
-  fun prove (A : prop) : derivation option = search A
+  fun prove sgltx (A : prop) : derivation option =
+    (if sgltx
+    then shouldLog := false
+    else ();
+    search A)
 
 
 end
