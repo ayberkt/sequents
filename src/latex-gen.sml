@@ -78,22 +78,21 @@ structure LaTeXGen = struct
        (* The proposition that is being inferred. *)
       "{"  ^ mkSequent seq  ^  "}"
 
-  fun genDrv (ZeroInf (r, seq)) = writeLn $ mkInfer 0 r seq
-    | genDrv (OneInf (r, d, seq)) = (genDrv d; writeLn $ mkInfer 1 r seq)
-    | genDrv (TwoInf (r, d1, d2, seq)) = (genDrv d1; genDrv d2; writeLn $ mkInfer 2 r seq)
+  fun genDrv (ZeroInf (r, seq)) =
+        writeLn $ mkInfer 0 r seq
+    | genDrv (OneInf (r, d, seq)) =
+        (genDrv d; writeLn $ mkInfer 1 r seq)
+    | genDrv (TwoInf (r, d1, d2, seq)) =
+        (genDrv d1; genDrv d2; writeLn $ mkInfer 2 r seq)
 
-  local
-    open TextIO
-  in
     fun generate drv =
       let
-        val preamble = TextIO.openIn "resources/preamble.tex"
-        val _ = copyBeforeProof preamble
+        val preamble = TIO.openIn "resources/preamble.tex"
       in
-        (genDrv drv;
-        copyAfterProof preamble;
-        TextIO.closeOut out)
+        (copyBeforeProof preamble
+         genDrv drv;
+         copyAfterProof preamble;
+         TextIO.closeOut out)
       end
-  end
 
 end
