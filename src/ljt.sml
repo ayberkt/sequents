@@ -9,11 +9,6 @@ structure LJT = struct
 
   val shouldLog = ref true
 
-  fun isLeftSync (ATOM _) = true
-    | isLeftSync ((ATOM _) IMPL _) = true
-    | isLeftSync ((_ IMPL _) IMPL _) = true
-    | isLeftSync _ = false
-
   exception NoProof
 
   fun printMsg s =
