@@ -9,6 +9,8 @@ structure SearchReport = struct
 
   fun upIndentLevel () = indent := !indent + 1
 
+  val nts = format (Bright, Yellow) "NTS"
+
   fun downIndentLevel () =
     if !indent > 0
     then indent := (!indent) - 1
@@ -23,8 +25,8 @@ structure SearchReport = struct
       result
     end
 
-  fun bullet s = (format (Bright, Black) "* ") ^ s
-  fun line s   = (format (Bright, Black) "- ") ^ s
+  fun bullet s = (format (Bright, DarkGray) "• ") ^ s
+  fun line s   = (format (Bright, DarkGray) "- ") ^ s
 
   fun brackets s = "[" ^ s ^ "]"
 
@@ -32,7 +34,7 @@ structure SearchReport = struct
     if not (Flags.shouldGenLaTeX ())
     then
       (print (replicateStr (!indent) "  ");
-       printLn s)
+       print (s ^ "\n"))
     else ()
 
   fun prProps' [] = ""
@@ -42,14 +44,14 @@ structure SearchReport = struct
   fun prProps ps = prProps' (List.rev ps)
 
   fun prSequent' ([] || [] ===> C) =
-        format (Bright, White ) ("---> " ^ (Syntax.pretty C))
+        format (Bright, White ) (" ---> " ^ (Syntax.pretty C))
     | prSequent' (G || O ===> C) =
         (format (Bright, White) ((prProps (O@G)) ^ " ----> " ^ (Syntax.pretty C)))
 
   fun printSequent (G || O) C =
     if Flags.shouldGenLaTeX ()
     then ()
-    else reportLn (bullet (prSequent' (G || O ===> C)))
+    else reportLn (bullet (nts ^ " " ^  prSequent' (G || O ===> C)))
 
   fun mkNewGoalMsg newgoal =
     let
@@ -59,6 +61,11 @@ structure SearchReport = struct
     in
       mkMsg newgoal
     end
+
+  fun reportNotProvable () =
+    (upIndentLevel ();
+     (reportLn o line) (format (Bright, Red) "Proposition not provable.");
+     downIndentLevel ())
 
   fun reportProven () =
     (upIndentLevel ();
@@ -70,9 +77,14 @@ structure SearchReport = struct
      reportLn ((line o mkNewGoalMsg) newgoal);
      downIndentLevel ())
 
+  fun reportRemark s =
+    (upIndentLevel ();
+     (reportLn o line) (colorize LightCyan "Note: " ^ s);
+     downIndentLevel ())
+
   fun printRule rlname =
     (upIndentLevel ();
-     reportLn (line ("Apply " ^ rlname));
+     reportLn (line ("Apply " ^ rlname ^ "."));
      downIndentLevel ())
 
 end

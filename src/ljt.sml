@@ -11,18 +11,21 @@ structure LJT = struct
 
   val concludeWithBotL =
     fn G || O => fn C =>
-      (printRule "Ex falso quodlibet 💥 ";
+      (reportRemark "Ex falso quodlibet 💥 ";
        reportProven ();
        ZeroInf (BotL, (BOT::G) || O ===> C))
 
   val concludeWithInit =
     fn G || O => fn C =>
-      (reportProven ();
+      (printRule "init";
+       reportProven ();
        ZeroInf (Init, G || O ===> C))
 
   val concludeWithTopR =
     fn G || O =>
-      (reportProven ();
+      (reportRemark "⊤ is always provable by ⊤R";
+       printRule "⊤R";
+       reportProven ();
        ZeroInf (Init, G || O ===> TOP))
 
   fun insrt (ATOM X) (G || O) = (ATOM X::G) || O
@@ -47,17 +50,29 @@ structure LJT = struct
 
   val appConjL =
     fn ctx => fn (A, B, C) =>
-      (printRule "∧L"; (insrt B o insrt A) ctx ===> C)
+      let
+        val newgoal = (insrt B o insrt A) ctx ===> C
+      in
+        (printNewGoal newgoal; printRule "∧L"; newgoal)
+      end
 
   val appTopL = fn ctx => fn C => (printRule "⊤L"; ctx ===> C)
 
   fun appTopImplL (G || O) B C =
-    (printRule "⊤⊃L";
-     (insrt B (G || O)) ===> C)
+    let
+      val newgoal = insrt B (G || O) ===> C
+    in
+      (printRule "⊤⊃L"; printNewGoal newgoal; newgoal)
+    end
 
   fun appDisjImplL ctx D E B C =
-    (printRule "∨⊃L.";
-     (insrt (E IMPL B) o insrt (D IMPL B)) ctx ===> C)
+    let
+      val newgoal = (insrt (E IMPL B) o insrt (D IMPL B)) ctx ===> C
+      val _ = printNewGoal newgoal
+      val _ = printRule "∨⊃L"
+    in
+      newgoal
+    end
 
   fun isImpl (_ IMPL _) = true
     | isImpl _ = false
@@ -163,12 +178,12 @@ structure LJT = struct
   and left G C =
     case getSome (eliminate C) (allCtxs G) of
       SOME d => d
-    | NONE => (printRule "Derivation not found"; raise NoProof)
+    | NONE => (reportNotProvable (); raise NoProof)
 
   and eliminate (ATOM Y) (ATOM X, ctx)  =
         if X = Y
         then
-          (printRule (X ^ " ∈ " ^ brackets (prProps (ATOM X::ctx)));
+          (reportRemark (X ^ " ∈ " ^ brackets (prProps (ATOM X::ctx)));
            SOME (concludeWithInit ((ATOM X::ctx) || []) (ATOM Y)))
         else NONE
     | eliminate _ (ATOM X, _) = NONE
@@ -186,7 +201,7 @@ structure LJT = struct
         in
           case appImplImplL (ctx || []) (D, E, B, C) of
             (newgoal1, newgoal2) =>
-              (printRule "Apply ⊃⊃L.";
+              (printRule "⊃⊃L";
               SOME (TwoInf (ImplImplL, right newgoal1, right newgoal2, goal)))
           handle NoProof => NONE
         end

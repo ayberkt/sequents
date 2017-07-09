@@ -32,7 +32,7 @@ structure Main = struct
             (if Flags.shouldGenLaTeX ()
              then generate drv
              else printLn "Proof found!"; 0)
-         | NONE => (printLn "Proposition not provable."; 1)
+         | NONE => 1
          handle _ => (print "Error\n"; 1))
       end
   end
