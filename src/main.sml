@@ -10,26 +10,6 @@ structure Main = struct
   infix  5 ||
 
 
-  fun parseArgs flgs [] = flgs
-    | parseArgs flgs ("--latex"::rest) = parseArgs (mustGenLaTeX flgs) rest
-    | parseArgs flgs ("--steps"::rest) =
-        let val flgs' = {
-          genLaTeX = #genLaTeX flgs,
-          steps = true,
-          outFile = #outFile flgs
-        }
-        in parseArgs flgs' rest end
-    | parseArgs flgs ("--out"::file::rest) =
-        let
-          val flgs' = {
-            genLaTeX = #genLaTeX flgs,
-            steps = #steps flgs,
-            outFile = SOME file
-          }
-        in parseArgs flgs' rest end
-    | parseArgs flgs (_::rest) = parseArgs flgs rest
-
-
   local
     fun printLn s = print (s ^ "\n")
     open PropLrVals
