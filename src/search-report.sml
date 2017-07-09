@@ -46,12 +46,15 @@ structure SearchReport = struct
 
   fun mkNewGoalMsg newgoal =
     let
-      val green : string -> string = Color.format (Bright, Green)
+      val yellow : string -> string = Color.format (Bright, Yellow)
       val mkMsg : sequent -> string =
-        fn ngs => (green "New goal: ") ^ (prSequent' ngs)
+        fn ngs => (yellow "New goal: ") ^ (prSequent' ngs)
     in
       mkMsg newgoal
     end
+
+  fun reportProven () =
+    printLnWithIndent "Goal proven."
 
   fun printNewGoal newgoal =
     (upIndentLevel ();

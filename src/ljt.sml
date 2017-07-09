@@ -12,16 +12,17 @@ structure LJT = struct
   val concludeWithBotL =
     fn G || O => fn C =>
       (printRule "Ex falso quodlibet 💥 ";
+       reportProven ();
        ZeroInf (BotL, (BOT::G) || O ===> C))
 
   val concludeWithInit =
     fn G || O => fn C =>
-      (printRule ("Proved");
+      (reportProven ();
        ZeroInf (Init, G || O ===> C))
 
   val concludeWithTopR =
     fn G || O =>
-      (printRule ("Proved");
+      (reportProven ();
        ZeroInf (Init, G || O ===> TOP))
 
   fun insrt (ATOM X) (G || O) = (ATOM X::G) || O
@@ -35,7 +36,14 @@ structure LJT = struct
      printNewGoal (ctx ===> B);
      (ctx ===> A, ctx ===> B))
 
-  fun appImplR ctx A B = (printRule "⊃R"; insrt A ctx ===> B)
+  fun appImplR ctx A B =
+    let
+      val newgoal = insrt A ctx ===> B
+    in
+      (printRule "⊃R";
+       printNewGoal newgoal;
+       newgoal)
+    end
 
   val appConjL =
     fn ctx => fn (A, B, C) =>
