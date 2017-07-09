@@ -28,7 +28,7 @@ structure Test = struct
     ]
 
   (*val isProvable = isSome o prove o Parser.parse*)
-  val isCFProvable = isSome o LJT.prove o Parser.parse
+  val provable = isSome o LJT.prove o Parser.parse
 
   val conjAssoc = "A /\\ (B /\\ C) => (A /\\ B) /\\ C"
   val conjComm  = "A /\\ B => B /\\ A"
@@ -53,8 +53,8 @@ structure Test = struct
   val duality2 = "((T => F) => F) /\\ (F => T => F)"
   val exFalsoQuodlibet = "F => A"
 
-  fun simpleCase (s : string) true  = ("[LJT] " ^ s, isCFProvable s mustBe true)
-    | simpleCase (s : string) false = ("[LJT] " ^ s ^ " not provable", isCFProvable s mustBe false)
+  fun simpleCase (s : string) true  = ("[LJT] " ^ s, provable s mustBe true)
+    | simpleCase (s : string) false = ("[LJT] " ^ s ^ " not provable", provable s mustBe false)
 
   val proofTests =
     [
@@ -79,29 +79,29 @@ structure Test = struct
       simpleCase "A => B => A" true
     , simpleCase "T" true
 
-    , ("[LJT] Reflexivity of =>"        , isCFProvable "A => A"   mustBe true)
-    , ("[LJT] A /\\ B => A"             , isCFProvable projConjL  mustBe true)
-    , ("[LJT] A /\\ B => B"             , isCFProvable projConjR  mustBe true)
-    , ("[LJT] Commutativity of /\\"     , isCFProvable conjComm   mustBe true)
-    , ("[LJT] Transitivity of =>"       , isCFProvable implTrans  mustBe true)
-    , ("[LJT] Commutativity \\/"        , isCFProvable disjComm   mustBe true)
-    , ("[LJT] A => B => B"              , isCFProvable impSnd     mustBe true)
-    , ("[LJT] Flip"                     , isCFProvable flip       mustBe true)
-    , ("[LJT] Random (1)"               , isCFProvable random1    mustBe true)
-    , ("[LJT] Random (2)"               , isCFProvable random2    mustBe true)
-    , ("[LJT] Random (3)"               , isCFProvable random3    mustBe true)
-    , ("[LJT] Duality (1)"              , isCFProvable duality1   mustBe true)
-    , ("[LJT] Duality (2)"              , isCFProvable duality2   mustBe true)
-    , ("[LJT] A => B => B"              , isCFProvable flip       mustBe true)
-    , ("[LJT] curry"                    , isCFProvable curry      mustBe true)
-    , ("[LJT] uncurry"                  , isCFProvable uncurry    mustBe true)
-    , ("[LJT] triple negation"          , isCFProvable tripleNeg  mustBe true)
-    , ("[LJT] Long implication (1)"     , isCFProvable long       mustBe true)
-    , ("[LJT] Long implication (2)"     , isCFProvable long2      mustBe true)
-    , ("[LJT] Longer implication"       , isCFProvable verylong   mustBe true)
-    , ("[LJT] Glivenko's theorem"       , isCFProvable glivenko   mustBe true)
-    , ("[LJT] F => F"                   , isCFProvable "F => F"   mustBe true)
-    , ("[LJT] Ex falso quodlibet"       , isCFProvable exFalsoQuodlibet  mustBe true)
+    , ("[LJT] Reflexivity of =>"        , provable "A => A"   mustBe true)
+    , ("[LJT] A /\\ B => A"             , provable projConjL  mustBe true)
+    , ("[LJT] A /\\ B => B"             , provable projConjR  mustBe true)
+    , ("[LJT] Commutativity of /\\"     , provable conjComm   mustBe true)
+    , ("[LJT] Transitivity of =>"       , provable implTrans  mustBe true)
+    , ("[LJT] Commutativity \\/"        , provable disjComm   mustBe true)
+    , ("[LJT] A => B => B"              , provable impSnd     mustBe true)
+    , ("[LJT] Flip"                     , provable flip       mustBe true)
+    , ("[LJT] Random (1)"               , provable random1    mustBe true)
+    , ("[LJT] Random (2)"               , provable random2    mustBe true)
+    , ("[LJT] Random (3)"               , provable random3    mustBe true)
+    , ("[LJT] Duality (1)"              , provable duality1   mustBe true)
+    , ("[LJT] Duality (2)"              , provable duality2   mustBe true)
+    , ("[LJT] A => B => B"              , provable flip       mustBe true)
+    , ("[LJT] Currying"                 , provable curry      mustBe true)
+    , ("[LJT] Uncurrying"               , provable uncurry    mustBe true)
+    , ("[LJT] Triple negation"          , provable tripleNeg  mustBe true)
+    , ("[LJT] Long implication (1)"     , provable long       mustBe true)
+    , ("[LJT] Long implication (2)"     , provable long2      mustBe true)
+    , ("[LJT] Longer implication"       , provable verylong   mustBe true)
+    , ("[LJT] Glivenko's theorem"       , provable glivenko   mustBe true)
+    , ("[LJT] F => F"                   , provable "F => F"   mustBe true)
+    , ("[LJT] Ex falso quodlibet"       , provable exFalsoQuodlibet  mustBe true)
 
     , simpleCase "F" false
     , simpleCase "T => F" false
