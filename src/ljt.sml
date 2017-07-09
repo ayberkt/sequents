@@ -38,14 +38,14 @@ structure LJT = struct
     (printMsg ("Proved " ^ (prSequent G O TOP) ^ " using ⊤R.");
      ZeroInf (Init, G || O ===> TOP))
 
-  fun insrt (G || O) (ATOM X)  = ((ATOM X)::G) || O
-    | insrt (G || O) TOP = G || (TOP::O)
-    | insrt (G || O) BOT = G || (BOT::O)
-    | insrt (G || O) ((ATOM X) IMPL B) = (ATOM X IMPL B::G) || O
-    | insrt (G || O) ((A IMPL B) IMPL D) = (((A IMPL B) IMPL D)::G) || O
-    | insrt (G || O) (A IMPL B) = G || (A IMPL B::O)
-    | insrt (G || O) (A CONJ B) = G || (A CONJ B::O)
-    | insrt (G || O) (A DISJ B) = G || (A DISJ B::O)
+  fun insrt (ATOM X) (G || O) = (ATOM X::G) || O
+    | insrt TOP (G || O) = G || (TOP::O)
+    | insrt BOT (G || O) = G || (BOT::O)
+    | insrt (ATOM X IMPL B) (G || O) = (ATOM X IMPL B::G) || O
+    | insrt ((A IMPL B) IMPL D) (G || O) = (((A IMPL B) IMPL D)::G) || O
+    | insrt (A IMPL B) (G || O) = G || (A IMPL B::O)
+    | insrt (A CONJ B) (G || O) = G || (A CONJ B::O)
+    | insrt (A DISJ B) (G || O) = G || (A DISJ B::O)
 
   fun appConjR (G || O) A B =
     (printMsg "Apply ∧R.";
@@ -53,12 +53,12 @@ structure LJT = struct
 
   fun appImplR ctx A B =
     (printMsg "Apply ⊃R.";
-     (insrt ctx A) ===> B)
+     (insrt A ctx) ===> B)
 
   fun appConjL (G || O) (A : prop) (B : prop) (C : prop) =
     let
       val _ = printMsg "Apply ∧L."
-      val ctx' = insrt (insrt (G || O) A) B
+      val ctx' = ((insrt B) o (insrt A)) (G || O)
     in ctx' ===> C end
 
   fun appTopL (G || O) C =
@@ -66,11 +66,11 @@ structure LJT = struct
 
   fun appTopImplL (G || O) B C =
     (printMsg "Apply ⊤⊃L.";
-     (insrt (G || O) B) ===> C)
+     (insrt B (G || O)) ===> C)
 
   fun appDisjImplL ctx D E B C =
     (printMsg "Apply ∨⊃L.";
-     (insrt (insrt ctx (D IMPL B)) (E IMPL B)) ===> C)
+     (insrt (E IMPL B) o insrt (D IMPL B)) ctx ===> C)
 
   fun isImpl (_ IMPL _) = true
     | isImpl _ = false
@@ -85,31 +85,28 @@ structure LJT = struct
     fn (G || O) => fn (A, B, C) =>
       let
         val _ = printMsg "Apply ∨L."
-        val ctx1 = insrt (G || O) A
-        val ctx2 = insrt (G || O) B
+        val (ctx1, ctx2) = (insrt A (G || O), insrt B (G || O))
       in (ctx1 ===> C, ctx2 ===> C) end
 
   val appConjImplL : context -> prop * prop * prop * prop -> sequent =
     fn (G || O) => fn (D, E, B, C) =>
       (printMsg "Apply ∧⊃L.";
-       (insrt (G || O) (D IMPL (E IMPL B))) ===> C)
+       (insrt (D IMPL (E IMPL B)) (G || O)) ===> C)
 
   val appAtomImplL  : prop list -> prop * prop * prop -> sequent =
       fn G => fn (P, B, C) =>
         let val _ = printMsg "Apply P⊃L." in
           if List.exists (fn x => x = P) G
-          then (insrt (G || []) B) ===> C
+          then (insrt B (G || [])) ===> C
           else
             (printMsg ((Syntax.pretty P) ^ " ∉ " ^ prProps G);
              raise NoProof)
         end
 
-  val appImplImplL : context
-                  -> prop * prop * prop * prop
-                  -> sequent * sequent =
-    fn (G || O) => fn (D, E, B, C) =>
-      let val ctx1 = insrt (insrt (G || O) (E IMPL B)) D
-          val ctx2 = insrt (G || O) B
+  val appImplImplL =
+    fn G || O => fn (D, E, B, C) =>
+      let val ctx1 = (insrt D o insrt (E IMPL B)) (G || O)
+          val ctx2 = insrt B (G || O)
       in (ctx1 ===> E, ctx2 ===> C) end
 
   (* Keep breaking down the asynchronous rules *)
@@ -211,14 +208,13 @@ structure LJT = struct
     | eliminate _ _ = (printLn "impossible case"; raise Fail "TODO")
 
   fun search C =
-    (SOME (right ([] || [] ===> C))
-      handle NoProof => NONE)
+    SOME (right ([] || [] ===> C))
+    handle NoProof => NONE
 
   fun prove sgltx (A : prop) : derivation option =
     (if sgltx
     then shouldLog := false
     else ();
     search A)
-
 
 end
