@@ -26,17 +26,20 @@ structure LJT = struct
     then printLn ("• " ^ (prSequent G O C))
     else ()
 
-  fun concludeWithBotL (G || O) C =
-    (printMsg "Ex falso quodlibet 💥 . Conclude proof with ⊥L.";
-     ZeroInf (BotL, (BOT::G) || O ===> C))
+  val concludeWithBotL =
+    fn G || O => fn C =>
+      (printMsg "Ex falso quodlibet 💥 . Conclude proof with ⊥L.";
+       ZeroInf (BotL, (BOT::G) || O ===> C))
 
-  fun concludeWithInit (G || O) C =
-    (printMsg ("Proved " ^ (prSequent G O C) ^ " using init.");
-     ZeroInf (Init, G || O ===> C))
+  val concludeWithInit =
+    fn G || O => fn C =>
+      (printMsg ("Proved " ^ (prSequent G O C) ^ " using init.");
+       ZeroInf (Init, G || O ===> C))
 
-  fun concludeWithTopR (G || O) =
-    (printMsg ("Proved " ^ (prSequent G O TOP) ^ " using ⊤R.");
-     ZeroInf (Init, G || O ===> TOP))
+  val concludeWithTopR =
+    fn G || O =>
+      (printMsg ("Proved " ^ (prSequent G O TOP) ^ " using ⊤R.");
+       ZeroInf (Init, G || O ===> TOP))
 
   fun insrt (ATOM X) (G || O) = (ATOM X::G) || O
     | insrt TOP (G || O) = G || (TOP::O)
@@ -47,22 +50,15 @@ structure LJT = struct
     | insrt (A CONJ B) (G || O) = G || (A CONJ B::O)
     | insrt (A DISJ B) (G || O) = G || (A DISJ B::O)
 
-  fun appConjR (G || O) A B =
-    (printMsg "Apply ∧R.";
-     (G || O ===> A, G || O ===> B))
+  fun appConjR ctx A B = (printMsg "Apply ∧R."; (ctx ===> A, ctx ===> B))
 
-  fun appImplR ctx A B =
-    (printMsg "Apply ⊃R.";
-     (insrt A ctx) ===> B)
+  fun appImplR ctx A B = (printMsg "Apply ⊃R."; insrt A ctx ===> B)
 
-  fun appConjL (G || O) (A : prop) (B : prop) (C : prop) =
-    let
-      val _ = printMsg "Apply ∧L."
-      val ctx' = ((insrt B) o (insrt A)) (G || O)
-    in ctx' ===> C end
+  val appConjL =
+    fn ctx => fn (A, B, C) =>
+      (printMsg "Apply ∧L."; (insrt B o insrt A) ctx ===> C)
 
-  fun appTopL (G || O) C =
-    (printMsg "Apply ⊤L."; G || O ===> C)
+  val appTopL = fn ctx => fn C => (printMsg "Apply ⊤L."; ctx ===> C)
 
   fun appTopImplL (G || O) B C =
     (printMsg "Apply ⊤⊃L.";
@@ -127,7 +123,7 @@ structure LJT = struct
         let
           val goal = (A CONJ B::G) || O ===> C
           val _ = printSequent G (A CONJ B::O) C
-          val newgoal = appConjL (G || O) A B C
+          val newgoal = appConjL (G || O) (A, B, C)
         in OneInf (ConjL, right newgoal, goal) end
     | right (G || (TOP::O) ===> C) =
         let
