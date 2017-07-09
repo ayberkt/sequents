@@ -70,7 +70,7 @@ structure LaTeXGen = struct
     fun mkCtx (G  || O) = showProps $ G @ O
   end
 
-  fun mkSequent (CTX ===> C) = (mkCtx CTX) ^ " \\Longrightarrow " ^ (genProp C)
+  fun mkSequent (CTX ===> C) = mkCtx CTX ^ " \\Longrightarrow " ^ genProp C
 
   fun mkInfer n rname seq =
     "\\infer" ^ Int.toString n ^
