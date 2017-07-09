@@ -26,5 +26,9 @@ structure Utils = struct
         (case f x of
           NONE => getSome f xs
         | x => x)
-  
+
+  fun intersperse y [] = []
+    | intersperse y [x] = [x]
+    | intersperse y (x::xs)=x::y::(intersperse y xs)
+
 end
