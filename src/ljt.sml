@@ -97,19 +97,19 @@ structure LJT = struct
       in (ctx1 ===> E, ctx2 ===> C) end
 
   (* Keep breaking down the asynchronous rules *)
-  fun right (G || O ===> TOP) =
-        concludeWithTopR (G || O)
+  fun right (ctx ===> TOP) =
+        concludeWithTopR ctx
     | right (ctx ===> A CONJ B) =
         let
           val _ = printSequent ctx (A CONJ B)
           val goal = ctx ===> A CONJ B
           val (newgoal1, newgoal2) = appConjR ctx A B
         in TwoInf (ConjR, right newgoal1, right newgoal2, goal) end
-    | right (G || O ===> A IMPL B) =
+    | right (ctx ===> A IMPL B) =
         let
-          val _ = printSequent (G || O) (A IMPL B)
-          val newgoal = appImplR (G || O) A B
-        in OneInf (ImplR, right newgoal, G || O ===> A IMPL B) end
+          val _ = printSequent ctx (A IMPL B)
+          val newgoal = appImplR ctx A B
+        in OneInf (ImplR, right newgoal, ctx ===> A IMPL B) end
     | right (G || (A CONJ B::O) ===> C) =
         let
           val goal = (A CONJ B::G) || O ===> C
