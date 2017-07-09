@@ -1,6 +1,7 @@
 structure LaTeXGen = struct
   open Syntax
   open Proofs
+  open Utils
   structure U   = Unparse
   structure TIO = TextIO
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
@@ -61,10 +62,6 @@ structure LaTeXGen = struct
     | mkItem (A IMPL B) = U.infix' (U.Right, 1, "\\supset") (mkItem A, mkItem B)
 
   val genProp = U.parens o U.done o mkItem
-
-  fun intersperse y [] = []
-    | intersperse y [x] = [x]
-    | intersperse y (x::xs)=x::y::(intersperse y xs)
 
   local
     open String
