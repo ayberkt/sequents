@@ -20,16 +20,15 @@ structure Main = struct
           Parser.parse o valOf $ TextIO.inputLine TextIO.stdIn
           handle
             ParseError s => (print ("Error: " ^ s ^ "\n"); raise Fail "foo")
-        val flgs = parseArgs defaultFlgs argv
         val result =
-          LJT.prove (#genLaTeX flgs) prop
+          LJT.prove prop
           handle Fail s =>
             (printLn ("Internal error: " ^ s);
              OS.Process.exit OS.Process.failure)
       in
         (case result of
           SOME drv =>
-            (if #genLaTeX flgs
+            (if !Flags.shouldGenLaTeX
              then generate drv
              else printLn "Proof found!"; 0)
          | NONE => (printLn "Proposition not provable."; 1)

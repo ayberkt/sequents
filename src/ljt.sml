@@ -7,19 +7,17 @@ structure LJT = struct
   open Proofs
   open Color
 
-  val shouldLog = ref true
-
   exception NoProof
 
   fun printMsg s =
-    if !shouldLog
-    then printLn (format (Bright, Yellow) ("  -- " ^ s))
-    else ()
+    if !Flags.shouldGenLaTeX
+    then ()
+    else printLn (format (Bright, Yellow) ("  -- " ^ s))
 
   fun printSequent (G || O) C =
-    if !shouldLog
-    then printLn ("• " ^ (prSequent G O C))
-    else ()
+    if !Flags.shouldGenLaTeX
+    then ()
+    else printLn ("• " ^ (prSequent G O C))
 
   val concludeWithBotL =
     fn G || O => fn C =>
@@ -198,10 +196,7 @@ structure LJT = struct
     SOME (right ([] || [] ===> C))
     handle NoProof => NONE
 
-  fun prove sgltx (A : prop) : derivation option =
-    (if sgltx
-    then shouldLog := false
-    else ();
-    search A)
+  fun prove (A : prop) : derivation option =
+    search A
 
 end
