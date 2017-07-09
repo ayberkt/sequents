@@ -11,13 +11,7 @@ structure Main = struct
 
 
   fun parseArgs flgs [] = flgs
-    | parseArgs flgs ("--latex"::rest) =
-        let val flgs' = {
-          genLaTeX = true,
-          steps = #steps flgs,
-          outFile = #outFile flgs
-        }
-        in parseArgs flgs' rest end
+    | parseArgs flgs ("--latex"::rest) = parseArgs (mustGenLaTeX flgs) rest
     | parseArgs flgs ("--steps"::rest) =
         let val flgs' = {
           genLaTeX = #genLaTeX flgs,

@@ -3,7 +3,7 @@ structure Flags = struct
   type flags = {
     genLaTeX : bool,
     steps          : bool,
-    outfile        : string option
+    outFile        : string option
   }
 
   val defaultFlgs = {
@@ -11,5 +11,10 @@ structure Flags = struct
     steps          = false,
     outFile        = NONE
   }
+
+  fun mustGenLaTeX (flgs : flags) : flags =
+    { genLaTeX = true
+    , steps    = #steps flgs
+    , outFile  = #outFile flgs }
 
 end
