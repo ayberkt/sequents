@@ -89,7 +89,7 @@ structure LaTeXGen = struct
       let
         val preamble = TIO.openIn "resources/preamble.tex"
       in
-        (copyBeforeProof preamble
+        (copyBeforeProof preamble;
          genDrv drv;
          copyAfterProof preamble;
          TextIO.closeOut out)
