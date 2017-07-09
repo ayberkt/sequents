@@ -16,7 +16,7 @@ structure LJT = struct
     then printLn (format (Bright, Yellow) ("  -- " ^ s))
     else ()
 
-  fun printSequent G O C =
+  fun printSequent (G || O) C =
     if !shouldLog
     then printLn ("• " ^ (prSequent G O C))
     else ()
@@ -40,7 +40,7 @@ structure LJT = struct
     | insrt (ATOM X IMPL B) (G || O) = (ATOM X IMPL B::G) || O
     | insrt ((A IMPL B) IMPL D) (G || O) = (((A IMPL B) IMPL D)::G) || O
     | insrt A (G || O) = G || (A::O)
-    
+
   fun appConjR ctx A B = (printMsg "Apply ∧R."; (ctx ===> A, ctx ===> B))
 
   fun appImplR ctx A B = (printMsg "Apply ⊃R."; insrt A ctx ===> B)
@@ -99,21 +99,21 @@ structure LJT = struct
   (* Keep breaking down the asynchronous rules *)
   fun right (G || O ===> TOP) =
         concludeWithTopR (G || O)
-    | right (G || O ===> A CONJ B) =
+    | right (ctx ===> A CONJ B) =
         let
-          val _ = printSequent G O (A CONJ B)
-          val goal = G || O ===> A CONJ B
-          val (newgoal1, newgoal2) = appConjR (G || O) A B
+          val _ = printSequent ctx (A CONJ B)
+          val goal = ctx ===> A CONJ B
+          val (newgoal1, newgoal2) = appConjR ctx A B
         in TwoInf (ConjR, right newgoal1, right newgoal2, goal) end
     | right (G || O ===> A IMPL B) =
         let
-          val _ = printSequent G O (A IMPL B)
+          val _ = printSequent (G || O) (A IMPL B)
           val newgoal = appImplR (G || O) A B
         in OneInf (ImplR, right newgoal, G || O ===> A IMPL B) end
     | right (G || (A CONJ B::O) ===> C) =
         let
           val goal = (A CONJ B::G) || O ===> C
-          val _ = printSequent G (A CONJ B::O) C
+          val _ = printSequent (G || (A CONJ B::O)) C
           val newgoal = appConjL (G || O) (A, B, C)
         in OneInf (ConjL, right newgoal, goal) end
     | right (G || (TOP::O) ===> C) =
@@ -123,17 +123,17 @@ structure LJT = struct
           OneInf (TopL, right newgoal, G || (TOP::O) ===> C)
         end
     | right (G || (BOT::O) ===> C) =
-        (printSequent G (BOT::O) C;
+        (printSequent (G || (BOT::O)) C;
          concludeWithBotL (G || O) C)
     | right (G || (A DISJ B::O) ===> C) =
         let
-          val _ = printSequent G (A DISJ B::O) C
+          val _ = printSequent (G || (A DISJ B::O)) C
           val goal = G || (A DISJ B::O) ===> C
           val (newgoal1, newgoal2) = appDisjL (G || O) (A, B, C)
         in TwoInf (DisjL, right newgoal1, right newgoal2, goal) end
     | right (G || (TOP IMPL B::O) ===> C) =
         let
-          val _ = printSequent G (TOP IMPL B::O) C
+          val _ = printSequent (G || (TOP IMPL B::O)) C
           val newgoal = appTopImplL (G || O) B C
         in OneInf (TopImplL, right newgoal, G || (TOP IMPL B::O) ===> C) end
     | right (G || (BOT IMPL B::O) ===> C) =
@@ -144,7 +144,7 @@ structure LJT = struct
             val newgoal = appConjImplL (G || O) (D, E, B, C)
         in OneInf (ConjImplL, right newgoal, goal) end
     | right (G || (D DISJ E IMPL B::O) ===> C) =
-        let val _ = printSequent G (D DISJ E IMPL B::O) C
+        let val _ = printSequent (G || (D DISJ E IMPL B::O)) C
             val goal = G || (D DISJ E IMPL B::O) ===> C
             val newgoal = appDisjImplL (G || O) D E B C
         in OneInf (DisjImplL, right newgoal, goal) end
@@ -158,7 +158,7 @@ structure LJT = struct
                  OneInf (DisjR2, right (G || [] ===> B), goal))
         end
     | right (G || [] ===> C) =
-      (printSequent G [] C;
+      (printSequent (G || []) C;
        printMsg "Will switch to left.";
        left G C)
 
@@ -175,7 +175,7 @@ structure LJT = struct
         else NONE
     | eliminate _ (ATOM X, _) = NONE
     | eliminate C (ATOM X IMPL B, ctx) =
-        let val _ = printSequent (ATOM X IMPL B::ctx) [] C
+        let val _ = printSequent ((ATOM X IMPL B::ctx) || []) C
             val goal = (ATOM X IMPL B::ctx) || [] ===> C
         in
           (case appAtomImplL ctx (ATOM X, B, C) of
