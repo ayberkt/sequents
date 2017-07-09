@@ -74,6 +74,7 @@ structure Test = struct
     , simpleCase "A" false
     , simpleCase "A /\\ B" false
     , simpleCase "A \\/ B" false
+    , ("[LJT] LEM _not_ provable", provable "P \\/ (P => F)" mustBe false)
     ]
 
   fun prBool true  = format (Bright, Green) "SUCCESS"
