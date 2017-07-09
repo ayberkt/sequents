@@ -51,6 +51,10 @@ structure Test = struct
   val glivenko = "((((A => B) => A) => A) => F) => F"
   val duality1 = "(A => F) \\/ (B => F) => (A /\\ B => F)"
   val duality2 = "((T => F) => F) /\\ (F => T => F)"
+  val exFalsoQuodlibet = "F => A"
+
+  fun simpleCase (s : string) true  = ("[LJT] " ^ s, isCFProvable s mustBe true)
+    | simpleCase (s : string) false = ("[LJT] " ^ s ^ " not provable", isCFProvable s mustBe false)
 
   val proofTests =
     [
@@ -72,15 +76,17 @@ structure Test = struct
     , ("[Inv] A /\\ B"           , isProvable ("A /\\ B") mustBe false)
     , ("[Inv] A \\/ B"           , isProvable ("A \\/ B") mustBe false)*)
 
-      ("[LJT] T provable"               , isCFProvable "T"        mustBe true)
+      simpleCase "A => B => A" true
+    , simpleCase "T" true
+
+    , ("[LJT] Reflexivity of =>"        , isCFProvable "A => A"   mustBe true)
     , ("[LJT] A /\\ B => A"             , isCFProvable projConjL  mustBe true)
     , ("[LJT] A /\\ B => B"             , isCFProvable projConjR  mustBe true)
     , ("[LJT] Commutativity of /\\"     , isCFProvable conjComm   mustBe true)
     , ("[LJT] Transitivity of =>"       , isCFProvable implTrans  mustBe true)
     , ("[LJT] Commutativity \\/"        , isCFProvable disjComm   mustBe true)
-    , ("[LJT] A => B => A"              , isCFProvable impFst     mustBe true)
     , ("[LJT] A => B => B"              , isCFProvable impSnd     mustBe true)
-    , ("[LJT] flip"                     , isCFProvable flip       mustBe true)
+    , ("[LJT] Flip"                     , isCFProvable flip       mustBe true)
     , ("[LJT] Random (1)"               , isCFProvable random1    mustBe true)
     , ("[LJT] Random (2)"               , isCFProvable random2    mustBe true)
     , ("[LJT] Random (3)"               , isCFProvable random3    mustBe true)
@@ -94,8 +100,14 @@ structure Test = struct
     , ("[LJT] Long implication (2)"     , isCFProvable long2      mustBe true)
     , ("[LJT] Longer implication"       , isCFProvable verylong   mustBe true)
     , ("[LJT] Glivenko's theorem"       , isCFProvable glivenko   mustBe true)
-    (*, ("[LJT] F not provable"           , isCFProvable "F"        mustBe false)*)
-    (*, ("[LJT] A not provable"           , isCFProvable "A"        mustBe false)*)
+    , ("[LJT] F => F"                   , isCFProvable "F => F"   mustBe true)
+    , ("[LJT] Ex falso quodlibet"       , isCFProvable exFalsoQuodlibet  mustBe true)
+
+    , simpleCase "F" false
+    , simpleCase "T => F" false
+    , simpleCase "A" false
+    , simpleCase "A /\\ B" false
+    , simpleCase "A \\/ B" false
     ]
 
   fun prBool true  = format (Bright, Green) "SUCCESS"
