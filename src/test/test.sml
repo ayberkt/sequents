@@ -37,6 +37,8 @@ structure Test = struct
   val duality2 = "((T => F) => F) /\\ (F => T => F)"
   val exFalsoQuodlibet = "F => A"
 
+  val invalid1 = "(A => B \\/ C) => (A => B) \\/ (A => C)"
+
   fun simpleCase (s : string) true  = ("[LJT] " ^ s, provable s mustBe true)
     | simpleCase (s : string) false = ("[LJT] " ^ s ^ " not provable", provable s mustBe false)
 
@@ -75,6 +77,7 @@ structure Test = struct
     , simpleCase "A /\\ B" false
     , simpleCase "A \\/ B" false
     , ("[LJT] LEM _not_ provable", provable "P \\/ (P => F)" mustBe false)
+    , ("[LJT] Invalid (1)", provable invalid1 mustBe false)
     ]
 
   fun prBool true  = format (Bright, Green) "SUCCESS"
