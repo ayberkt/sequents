@@ -26,7 +26,5 @@ structure Utils = struct
         (case f x of
           NONE => getSome f xs
         | x => x)
-
-
-
+  
 end
