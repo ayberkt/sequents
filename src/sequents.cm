@@ -4,6 +4,7 @@ Group is
   parser.sml
   prop.grm
   prop.lex
+  flags.sml
   utils.sml
   syntax.sml
   ../lib/sml-unparse/unparse.cm
