@@ -211,7 +211,6 @@ structure LJT = struct
     SOME (right ([] || [] ===> C))
     handle NoProof => NONE
 
-  fun prove (A : prop) : derivation option =
-    search A
+  val prove : prop -> derivation option = search
 
 end
