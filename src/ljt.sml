@@ -23,7 +23,7 @@ structure LJT = struct
 
   val concludeWithBotL =
     fn G || O => fn C =>
-      (printMsg "Ex falso quodlibet 💥 . Conclude proof with ⊥L.";
+      (printMsg "Conclude proof by ex falso quodlibet 💥 .";
        ZeroInf (BotL, (BOT::G) || O ===> C))
 
   val concludeWithInit =
