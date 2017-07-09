@@ -1,13 +1,20 @@
-structure Flags = struct
+structure Flags : FLAGS = struct
 
-  val shouldGenLaTeX = ref false
-  val outFile : (string option) ref = ref NONE
+  val flgShouldGenLaTeX = ref false
+  val flgOutFile : (string option) ref = ref NONE
+
+  fun shouldGenLaTeX () = !flgShouldGenLaTeX
+
+  fun outFile () =
+    case !flgOutFile of
+      SOME file => file
+    | NONE => raise Fail "outFile called before initialization"
 
   fun parseArgs [] = ()
     | parseArgs ("--latex"::rest) =
-        (shouldGenLaTeX := true; parseArgs rest)
+        (flgShouldGenLaTeX := true; parseArgs rest)
     | parseArgs ("--steps"::rest) = parseArgs rest
     | parseArgs ("--out"::file::rest) =
-        (outFile := SOME file; parseArgs rest)
+        (flgOutFile := SOME file; parseArgs rest)
 
 end
