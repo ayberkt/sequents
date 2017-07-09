@@ -6,7 +6,7 @@ checking
 
 ## Building
 
-First make sure that you have `smlnj` installed. To compile, run
+First make sure that you have `smlnj` installed. To build, run
 ```
 ./script/build.sh
 ```
