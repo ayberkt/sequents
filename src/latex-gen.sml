@@ -1,6 +1,7 @@
 structure LaTeXGen = struct
   open Syntax
   open Proofs
+  open Utils
   structure U   = Unparse
   structure TIO = TextIO
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
@@ -44,11 +45,11 @@ structure LaTeXGen = struct
       | ruleName' BotL       = "{\\bot}L"
       | ruleName' ImplL      = "{\\supset}L"
       | ruleName' AtomImplL  = "P{\\supset}L"
-      | ruleName' ConjImplL  = "\\wedge\\supset L"
-      | ruleName' TopImplL   = "\\top\\supset L"
-      | ruleName' DisjImplL  = "\\vee\\supset L"
-      | ruleName' BotImplL   = "\\bot\\supset L"
-      | ruleName' ImplImplL  = "\\supset\\supset L"
+      | ruleName' ConjImplL  = "{\\wedge\\supset}L"
+      | ruleName' TopImplL   = "{\\top\\supset}L"
+      | ruleName' DisjImplL  = "{\\vee\\supset}L"
+      | ruleName' BotImplL   = "{\\bot\\supset}L"
+      | ruleName' ImplImplL  = "{\\supset\\supset}L"
   in
     fun ruleName r = "\\rlname{" ^ ruleName' r ^ "}"
   end
@@ -62,10 +63,6 @@ structure LaTeXGen = struct
 
   val genProp = U.parens o U.done o mkItem
 
-  fun intersperse y [] = []
-    | intersperse y [x] = [x]
-    | intersperse y (x::xs)=x::y::(intersperse y xs)
-
   local
     open String
     fun showProps PS = concat o (intersperse ", ") $ genProp <$> (List.rev PS)
@@ -73,7 +70,7 @@ structure LaTeXGen = struct
     fun mkCtx (G  || O) = showProps $ G @ O
   end
 
-  fun mkSequent (CTX ===> C) = (mkCtx CTX) ^ " \\Longrightarrow " ^ (genProp C)
+  fun mkSequent (CTX ===> C) = mkCtx CTX ^ " \\Longrightarrow " ^ genProp C
 
   fun mkInfer n rname seq =
     "\\infer" ^ Int.toString n ^
@@ -81,22 +78,21 @@ structure LaTeXGen = struct
        (* The proposition that is being inferred. *)
       "{"  ^ mkSequent seq  ^  "}"
 
-  fun genDrv (ZeroInf (r, seq)) = writeLn $ mkInfer 0 r seq
-    | genDrv (OneInf (r, d, seq)) = (genDrv d; writeLn $ mkInfer 1 r seq)
-    | genDrv (TwoInf (r, d1, d2, seq)) = (genDrv d1; genDrv d2; writeLn $ mkInfer 2 r seq)
+  fun genDrv (ZeroInf (r, seq)) =
+        writeLn $ mkInfer 0 r seq
+    | genDrv (OneInf (r, d, seq)) =
+        (genDrv d; writeLn $ mkInfer 1 r seq)
+    | genDrv (TwoInf (r, d1, d2, seq)) =
+        (genDrv d1; genDrv d2; writeLn $ mkInfer 2 r seq)
 
-  local
-    open TextIO
-  in
     fun generate drv =
       let
-        val preamble = TextIO.openIn "resources/preamble.tex"
-        val _ = copyBeforeProof preamble
+        val preamble = TIO.openIn "resources/preamble.tex"
       in
-        (genDrv drv;
-        copyAfterProof preamble;
-        TextIO.closeOut out)
+        (copyBeforeProof preamble;
+         genDrv drv;
+         copyAfterProof preamble;
+         TextIO.closeOut out)
       end
-  end
 
 end
