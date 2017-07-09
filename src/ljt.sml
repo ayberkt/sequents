@@ -49,7 +49,7 @@ structure LJT = struct
     fn ctx => fn (A, B, C) =>
       (printRule "∧L"; (insrt B o insrt A) ctx ===> C)
 
-  val appTopL = fn ctx => fn C => (printRule "Apply ⊤L"; ctx ===> C)
+  val appTopL = fn ctx => fn C => (printRule "⊤L"; ctx ===> C)
 
   fun appTopImplL (G || O) B C =
     (printRule "⊤⊃L";
@@ -158,9 +158,7 @@ structure LJT = struct
                  OneInf (DisjR2, right (G || [] ===> B), goal))
         end
     | right (G || [] ===> C) =
-      (printSequent (G || []) C;
-       printRule "Will switch to left.";
-       left G C)
+      (printSequent (G || []) C; left G C)
 
   and left G C =
     case getSome (eliminate C) (allCtxs G) of
@@ -170,7 +168,7 @@ structure LJT = struct
   and eliminate (ATOM Y) (ATOM X, ctx)  =
         if X = Y
         then
-          (printRule (X ^ " ∈ " ^ (prProps (ATOM X::ctx)));
+          (printRule (X ^ " ∈ " ^ brackets (prProps (ATOM X::ctx)));
            SOME (concludeWithInit ((ATOM X::ctx) || []) (ATOM Y)))
         else NONE
     | eliminate _ (ATOM X, _) = NONE

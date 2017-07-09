@@ -26,23 +26,30 @@ structure SearchReport = struct
   fun bullet s = (format (Bright, Black) "* ") ^ s
   fun line s   = (format (Bright, Black) "- ") ^ s
 
-  fun printLnWithIndent s =
-    (print (replicateStr (!indent) "  ");
-     printLn s)
+  fun brackets s = "[" ^ s ^ "]"
+
+  fun reportLn s =
+    if not (Flags.shouldGenLaTeX ())
+    then
+      (print (replicateStr (!indent) "  ");
+       printLn s)
+    else ()
 
   fun prProps' [] = ""
     | prProps' [p] = Syntax.pretty p
     | prProps' (p::ps) = Syntax.pretty p ^ ", " ^ (prProps' ps)
 
-  fun prProps ps = "[" ^ prProps' (List.rev ps) ^ "]"
+  fun prProps ps = prProps' (List.rev ps)
 
-  fun prSequent' (G || O ===> C) =
-    (format (Bright, White) ((prProps G) ^ "; " ^ (prProps O) ^ "  ---->  " ^ (Syntax.pretty C)))
+  fun prSequent' ([] || [] ===> C) =
+        format (Bright, White ) ("---> " ^ (Syntax.pretty C))
+    | prSequent' (G || O ===> C) =
+        (format (Bright, White) ((prProps (O@G)) ^ " ----> " ^ (Syntax.pretty C)))
 
   fun printSequent (G || O) C =
     if Flags.shouldGenLaTeX ()
     then ()
-    else printLnWithIndent (bullet (prSequent' (G || O ===> C)))
+    else reportLn (bullet (prSequent' (G || O ===> C)))
 
   fun mkNewGoalMsg newgoal =
     let
@@ -54,16 +61,18 @@ structure SearchReport = struct
     end
 
   fun reportProven () =
-    printLnWithIndent "Goal proven."
+    (upIndentLevel ();
+    (reportLn o line o (format (Bright, Green))) "QED";
+    downIndentLevel ())
 
   fun printNewGoal newgoal =
     (upIndentLevel ();
-     printLnWithIndent ((line o mkNewGoalMsg) newgoal);
+     reportLn ((line o mkNewGoalMsg) newgoal);
      downIndentLevel ())
 
   fun printRule rlname =
     (upIndentLevel ();
-     printLnWithIndent (line ("Apply " ^ rlname));
+     reportLn (line ("Apply " ^ rlname));
      downIndentLevel ())
 
 end
