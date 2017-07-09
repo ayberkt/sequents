@@ -37,14 +37,10 @@ structure LJT = struct
        ZeroInf (Init, G || O ===> TOP))
 
   fun insrt (ATOM X) (G || O) = (ATOM X::G) || O
-    | insrt TOP (G || O) = G || (TOP::O)
-    | insrt BOT (G || O) = G || (BOT::O)
     | insrt (ATOM X IMPL B) (G || O) = (ATOM X IMPL B::G) || O
     | insrt ((A IMPL B) IMPL D) (G || O) = (((A IMPL B) IMPL D)::G) || O
-    | insrt (A IMPL B) (G || O) = G || (A IMPL B::O)
-    | insrt (A CONJ B) (G || O) = G || (A CONJ B::O)
-    | insrt (A DISJ B) (G || O) = G || (A DISJ B::O)
-
+    | insrt A (G || O) = G || (A::O)
+    
   fun appConjR ctx A B = (printMsg "Apply ∧R."; (ctx ===> A, ctx ===> B))
 
   fun appImplR ctx A B = (printMsg "Apply ⊃R."; insrt A ctx ===> B)
