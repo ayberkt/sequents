@@ -25,7 +25,8 @@ struct
   	       end
   	end
 
-  fun error (s, pos, pos') = (raise Fail ("Parse error !" ^ s))
+  exception ParseError of string
+  fun error (s, pos, pos') = raise ParseError s
 
   fun parse text =
     let

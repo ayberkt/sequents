@@ -2,6 +2,7 @@ structure InvCalc = struct
   structure L = List
   structure O = Option
   structure SP = SearchReport
+  open Utils
   open Syntax
   open Proofs
 
@@ -13,13 +14,6 @@ structure InvCalc = struct
 
   fun <$> (f, xs) = L.map f xs
   infixr 1 <$>
-
-  val mapi =
-    fn f => fn (xs : 'a list) =>
-      let
-        fun mapi' f [] _ = []
-          | mapi' f (x::xs) n = (f (n, x))::(mapi' f xs (n+1))
-      in mapi' f xs 0 end
 
   fun splitAt (xs, n) =
     let
@@ -41,10 +35,6 @@ structure InvCalc = struct
 
   fun getImpl (i, _ IMPL _) = SOME i
     | getImpl (_, _) = NONE
-
-  fun catOpts [] = []
-    | catOpts (SOME x::os) = x::(catOpts os)
-    | catOpts (NONE::os) = catOpts os
 
   fun prCtxs' [] = ""
     | prCtxs' [(p, ps)] = "<" ^ (Syntax.pretty p) ^ " | " ^ (SP.prProps ps) ^ ">"

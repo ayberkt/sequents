@@ -4,10 +4,11 @@ Group is
   parser.sml
   prop.grm
   prop.lex
+  utils.sml
   syntax.sml
   ../lib/sml-unparse/unparse.cm
+  ../lib/sml-colors/colors.cm
   proofs.sml
   search-report.sml
-  inversion-calc.sml
-  (*contraction-free.sml*)
+  ljt.sml
   latex-gen.sml

@@ -1,6 +1,7 @@
 structure Test = struct
-  open InvCalc
-  (*structure CF = ContFree*)
+  open Utils
+  open Color
+  structure S = String
   open TextIO
 
   fun $ (f, x) = f x
@@ -10,58 +11,77 @@ structure Test = struct
   fun mustBe (x, y) = (x, y)
   infixr 3 mustBe
 
-  fun unitTests () =
-    [
-      (*allCtxs [ATOM "A", IMPL (ATOM "P", ATOM "Q")]
-        mustBe
-      [(IMPL (ATOM "P", ATOM "Q"), [ATOM "A"])]
-    , allCtxs [ATOM "A", DISJ (ATOM "X", ATOM "Y"), IMPL (ATOM "P", ATOM "Q")]
-      mustBe
-      [(IMPL (ATOM "P", ATOM "Q"), [ATOM "A", DISJ (ATOM "X", ATOM "Y")])]
-    , allCtxs [IMPL (ATOM "A", ATOM "B"), IMPL (ATOM "P", ATOM "Q"), ATOM "A", ATOM "Q"]
-      mustBe
-      [ (IMPL (ATOM "A", ATOM "B"), [IMPL (ATOM "P", ATOM "Q"), ATOM "A", ATOM "Q"])
-      , (IMPL (ATOM "P", ATOM "Q"), [IMPL (ATOM "A", ATOM "B"), ATOM "A", ATOM "Q"])
-      ]*)
-    ]
-
-  val isProvable = isSome o prove o Parser.parse
-  (*val isCFProvable = isSome o CF.prove o Parser.parse*)
+  (*val isProvable = isSome o prove o Parser.parse*)
+  val provable = isSome o (LJT.prove false) o Parser.parse
 
   val conjAssoc = "A /\\ (B /\\ C) => (A /\\ B) /\\ C"
   val conjComm  = "A /\\ B => B /\\ A"
+  val implTrans = "(A => B) => (B => C) => (A => C)"
+  val disjComm  = "A \\/ B => B \\/ A"
   val random1   = "(A \\/ B => C) => ((A => C) /\\ (B => C))"
   val random2   = "((A \\/ B \\/ C) => D) => ((A => D) /\\ (B => D) /\\ (C => D))"
+  val random3   = "((A => B) => C) => D => D \\/ D"
   val curry     = "(A /\\ B => C) => (A => B => C)"
+  val uncurry   = "(A => B => C) => (A /\\ B => C)"
   val projConjL = "A /\\ B => A"
   val projConjR = "A /\\ B => B"
+  val impFst    = "A => (B => A)"
+  val impSnd    = "A => (B => A)"
+  val flip = "(A => B => C) => (B => A => C)"
+  val tripleNeg = "(((A => F) => F) => F) => (A => F)"
+  val long = "(((A => B) => C) => D) => (((A => B) => C) => D)"
+  val long2 = "(((((A => B) => C) => D) => E) => F) => ((((A => B) => C) => D) => E) => F"
+  val verylong = "(((((A => B) => C) => D) => E) => F) => (((((A => B) => C) => D) => E) => F) \\/ (((((A => B) => C) => D) => E) => F)"
+  val glivenko = "((((A => B) => A) => A) => F) => F"
+  val duality1 = "(A => F) \\/ (B => F) => (A /\\ B => F)"
+  val duality2 = "((T => F) => F) /\\ (F => T => F)"
+  val exFalsoQuodlibet = "F => A"
 
-  val proofTests =
+  val invalid1 = "(A => B \\/ C) => (A => B) \\/ (A => C)"
+
+  fun simpleCase (s : string) true  = ("[LJT] " ^ s, provable s mustBe true)
+    | simpleCase (s : string) false = ("[LJT] " ^ s ^ " not provable", provable s mustBe false)
+
+  val testCases =
     [
-      ("[Inversion] /\\-commutative"   , isProvable conjComm    mustBe true)
-    , ("[Inversion] A /\\ B => A"      , isProvable projConjL   mustBe true)
-    , ("[Inversion] A /\\ B => B"      , isProvable projConjR   mustBe true)
-    , ("[Inversion] /\\-associative"   , isProvable conjAssoc   mustBe true)
-    , ("[Inversion] A \\/ B => B \\/ A", isProvable ("A \\/ B => B \\/ A") mustBe true)
-    , ("[Inversion] A => (B => A)"     , isProvable ("A => (B => A)")      mustBe true)
-    , ("[Inversion] A => (B => A)"     , isProvable ("A => (B => A)")      mustBe true)
-    , ("[Inversion] A => A"            , isProvable ("A => (B => A)")      mustBe true)
-    , ("[Inversion] random1", isProvable random1 mustBe true)
-    , ("[Inversion] random2", isProvable random2 mustBe true)
-    , ("[Inversion] (A => B => C) => (B => A => C)", isProvable "(A => B => C) => (B => A => C)" mustBe true)
-    , ("[Inversion] currying"          , isProvable curry         mustBe true)
-    , ("[Inversion] uncurrying"        , isProvable "(A => B => C) => (A /\\ B => C)" mustBe true)
-    , ("[Inversion] F"                 , isProvable "F"         mustBe false)
-    , ("[Inversion] A => B"            , isProvable ("A => B")  mustBe false)
-    , ("[Inversion] A /\\ A"           , isProvable ("A /\\ A") mustBe false)
-    , ("[Inversion] A /\\ B"           , isProvable ("A /\\ B") mustBe false)
-    , ("[Inversion] A \\/ B"           , isProvable ("A \\/ B") mustBe false)
+      simpleCase "A => B => A" true
+    , simpleCase "T" true
 
-    (*, ("[Cont-free] /\\-commutative"   , isCFProvable projConjL  mustBe true)*)
+    , ("[LJT] Reflexivity of =>"        , provable "A => A"   mustBe true)
+    , ("[LJT] A /\\ B => A"             , provable projConjL  mustBe true)
+    , ("[LJT] A /\\ B => B"             , provable projConjR  mustBe true)
+    , ("[LJT] Commutativity of /\\"     , provable conjComm   mustBe true)
+    , ("[LJT] Transitivity of =>"       , provable implTrans  mustBe true)
+    , ("[LJT] Commutativity \\/"        , provable disjComm   mustBe true)
+    , ("[LJT] A => B => B"              , provable impSnd     mustBe true)
+    , ("[LJT] Flip"                     , provable flip       mustBe true)
+    , ("[LJT] Random (1)"               , provable random1    mustBe true)
+    , ("[LJT] Random (2)"               , provable random2    mustBe true)
+    , ("[LJT] Random (3)"               , provable random3    mustBe true)
+    , ("[LJT] Duality (1)"              , provable duality1   mustBe true)
+    , ("[LJT] Duality (2)"              , provable duality2   mustBe true)
+    , ("[LJT] A => B => B"              , provable flip       mustBe true)
+    , ("[LJT] Currying"                 , provable curry      mustBe true)
+    , ("[LJT] Uncurrying"               , provable uncurry    mustBe true)
+    , ("[LJT] Triple negation"          , provable tripleNeg  mustBe true)
+    , ("[LJT] Long implication (1)"     , provable long       mustBe true)
+    , ("[LJT] Long implication (2)"     , provable long2      mustBe true)
+    , ("[LJT] Longer implication"       , provable verylong   mustBe true)
+    , ("[LJT] Glivenko's theorem"       , provable glivenko   mustBe true)
+    , ("[LJT] F => F"                   , provable "F => F"   mustBe true)
+    , ("[LJT] Ex falso quodlibet"       , provable exFalsoQuodlibet  mustBe true)
+
+    , simpleCase "F" false
+    , simpleCase "T => F" false
+    , simpleCase "A" false
+    , simpleCase "A /\\ B" false
+    , simpleCase "A \\/ B" false
+    , ("[LJT] LEM _not_ provable", provable "P \\/ (P => F)" mustBe false)
+    , ("[LJT] Invalid (1)", provable invalid1 mustBe false)
     ]
 
-  fun prBool true  = "SUCCESS"
-    | prBool false = "FAILURE"
+  fun prBool true  = format (Bright, Green) "SUCCESS"
+    | prBool false = format (Bright, Red) "FAILURE"
 
   fun printDots 0 = ()
     | printDots n = (print "."; printDots (n-1))
@@ -72,26 +92,22 @@ structure Test = struct
   val digits = S.size o Int.toString
 
   fun prLineNum n =
-    print $  (Int.toString n) ^ (mkSpace $ 4 - (digits n))
+    print $ (colorize LightBlue (Int.toString n)) ^ (mkSpace $ 4 - (digits n))
 
   fun testSuccessful (i, (dsc, (inp, out))) =
-  (
-    print $ (prLineNum (i+1); "| ");
-    print $ dsc ^ " ";
-    printDots (60 - (String.size dsc));
-    print $ " " ^ (prBool $ inp = out) ^ "\n";
-    inp = out
-  )
+    (print $ (prLineNum (i+1); "| ");
+     print $ format (Bright, White) (dsc ^ " ");
+     printDots (60 - (String.size dsc));
+     print $ " " ^ (prBool $ inp = out) ^ "\n";
+     inp = out)
 
-  fun allSuccessful ts = List.foldr (fn (p, q) => p andalso q) true (mapi testSuccessful ts)
+  fun allSuccessful ts =
+    List.foldr (fn (p, q) => p andalso q) true (mapi testSuccessful ts)
 
   fun main (arg0, argv) =
-    (if allSuccessful (unitTests ())
-     then
-       (if allSuccessful proofTests
-        then (print "\n--  All tests have passed.\n"; 0)
-        else (print "Some of the proof tests have failed.\n"; 1))
-     else (print "Some of the unit tests have failed.\n"; 1))
+    (if allSuccessful testCases
+     then (print "\n--  All tests have passed.\n"; 0)
+     else (print "\n-- Some of the tests have failed.\n"; 1))
 
   val _ = SMLofNJ.exportFn ("test",  main)
 

@@ -1,13 +1,9 @@
 structure LaTeXGen = struct
-  open InvCalc
-  structure U = Unparse
+  open Syntax
+  open Proofs
+  structure U   = Unparse
   structure TIO = TextIO
-
-  infixr 5 ||
-  infixr 4 ===>
-  infixr 6 CONJ
-  infixr 6 DISJ
-  infixr 6 IMPL
+  infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
 
   fun $ (f, x) = f x
   infix 0 $
@@ -36,17 +32,23 @@ structure LaTeXGen = struct
           copyAfterProof strm)
 
   local
-    fun ruleName' ConjR     = "\\wedge R"
-      | ruleName' ConjL     = "\\wedge L"
-      | ruleName' TopR      = "\\top R"
-      | ruleName' ImplR     = "\\supset R"
-      | ruleName' Init     = "\\mathsf{init}"
-      | ruleName' DisjL     = "\\vee L"
-      | ruleName' DisjR1    = "\\vee R_1"
-      | ruleName' DisjR2    = "\\vee R_2"
-      | ruleName' TopL      = "\\top L"
-      | ruleName' BotL      = "\\bot L"
-      | ruleName' ImplL     = "\\supset L"
+    fun ruleName' ConjR      = "{\\wedge}R"
+      | ruleName' ConjL      = "{\\wedge}L"
+      | ruleName' TopR       = "{\\top}R"
+      | ruleName' ImplR      = "{\\supset}R"
+      | ruleName' Init       = "\\mathsf{init}"
+      | ruleName' DisjL      = "{\\vee}L"
+      | ruleName' DisjR1     = "{\\vee}R_1"
+      | ruleName' DisjR2     = "{\\vee}R_2"
+      | ruleName' TopL       = "{\\top}L"
+      | ruleName' BotL       = "{\\bot}L"
+      | ruleName' ImplL      = "{\\supset}L"
+      | ruleName' AtomImplL  = "P{\\supset}L"
+      | ruleName' ConjImplL  = "\\wedge\\supset L"
+      | ruleName' TopImplL   = "\\top\\supset L"
+      | ruleName' DisjImplL  = "\\vee\\supset L"
+      | ruleName' BotImplL   = "\\bot\\supset L"
+      | ruleName' ImplImplL  = "\\supset\\supset L"
   in
     fun ruleName r = "\\rlname{" ^ ruleName' r ^ "}"
   end

@@ -1,3 +1,6 @@
 [submodule "lib/sml-unparse"]
 	path = lib/sml-unparse
 	url = https://github.com/RedPRL/sml-unparse
+[submodule "lib/sml-colors"]
+	path = lib/sml-colors
+	url = https://github.com/ayberkt/sml-colors
