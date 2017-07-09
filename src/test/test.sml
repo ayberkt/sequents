@@ -12,7 +12,7 @@ structure Test = struct
   infixr 3 mustBe
 
   (*val isProvable = isSome o prove o Parser.parse*)
-  val provable = isSome o (LJT.prove false) o Parser.parse
+  val provable = isSome o LJT.prove o Parser.parse
 
   val conjAssoc = "A /\\ (B /\\ C) => (A /\\ B) /\\ C"
   val conjComm  = "A /\\ B => B /\\ A"
