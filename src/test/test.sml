@@ -28,7 +28,7 @@ structure Test = struct
   val impFst    = "A => (B => A)"
   val impSnd    = "A => (B => A)"
   val flip = "(A => B => C) => (B => A => C)"
-  val tripleNeg = "(((A => F) => F) => F) => (A => F)"
+  val tripleNeg = "~~~A => ~A"
   val long = "(((A => B) => C) => D) => (((A => B) => C) => D)"
   val long2 = "(((((A => B) => C) => D) => E) => F) => ((((A => B) => C) => D) => E) => F"
   val verylong = "(((((A => B) => C) => D) => E) => F) => (((((A => B) => C) => D) => E) => F) \\/ (((((A => B) => C) => D) => E) => F)"
