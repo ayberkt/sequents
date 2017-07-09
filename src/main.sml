@@ -16,6 +16,7 @@ structure Main = struct
   in
     fun main (arg0, argv) =
       let
+        val _ = Flags.parseArgs argv
         val prop =
           Parser.parse o valOf $ TextIO.inputLine TextIO.stdIn
           handle
@@ -28,7 +29,7 @@ structure Main = struct
       in
         (case result of
           SOME drv =>
-            (if !Flags.shouldGenLaTeX
+            (if Flags.shouldGenLaTeX ()
              then generate drv
              else printLn "Proof found!"; 0)
          | NONE => (printLn "Proposition not provable."; 1)

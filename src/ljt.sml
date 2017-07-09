@@ -10,12 +10,12 @@ structure LJT = struct
   exception NoProof
 
   fun printMsg s =
-    if !Flags.shouldGenLaTeX
+    if Flags.shouldGenLaTeX ()
     then ()
     else printLn (format (Bright, Yellow) ("  -- " ^ s))
 
   fun printSequent (G || O) C =
-    if !Flags.shouldGenLaTeX
+    if Flags.shouldGenLaTeX ()
     then ()
     else printLn ("• " ^ (prSequent G O C))
 
