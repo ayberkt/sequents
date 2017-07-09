@@ -9,4 +9,6 @@ before_install:
 
 script:
   - chmod u+x script/test.sh
+  - chmod u+x script/test_latex.sh
+  - ./script/test_latex.sh
   - ./script/test.sh
