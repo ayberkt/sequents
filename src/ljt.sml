@@ -9,16 +9,6 @@ structure LJT = struct
 
   exception NoProof
 
-  fun printMsg s =
-    if Flags.shouldGenLaTeX ()
-    then ()
-    else printLn (format (Bright, Yellow) ("  -- " ^ s))
-
-  fun printSequent (G || O) C =
-    if Flags.shouldGenLaTeX ()
-    then ()
-    else printLn ("• " ^ (prSequent G O C))
-
   val concludeWithBotL =
     fn G || O => fn C =>
       (printMsg "Conclude proof by ex falso quodlibet 💥 .";
@@ -39,7 +29,10 @@ structure LJT = struct
     | insrt ((A IMPL B) IMPL D) (G || O) = (((A IMPL B) IMPL D)::G) || O
     | insrt A (G || O) = G || (A::O)
 
-  fun appConjR ctx A B = (printMsg "Apply ∧R."; (ctx ===> A, ctx ===> B))
+  fun appConjR ctx A B =
+    (printMsg "Apply ∧R.";
+     printNewGoals (ctx ===> A, ctx ===> B);
+     (ctx ===> A, ctx ===> B))
 
   fun appImplR ctx A B = (printMsg "Apply ⊃R."; insrt A ctx ===> B)
 
@@ -102,7 +95,7 @@ structure LJT = struct
           val _ = printSequent ctx (A CONJ B)
           val goal = ctx ===> A CONJ B
           val (newgoal1, newgoal2) = appConjR ctx A B
-        in TwoInf (ConjR, right newgoal1, right newgoal2, goal) end
+        in TwoInf (ConjR, searchWithIndent right newgoal1, searchWithIndent right newgoal2, goal) end
     | right (ctx ===> A IMPL B) =
         let
           val _ = printSequent ctx (A IMPL B)
