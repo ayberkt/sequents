@@ -8,14 +8,15 @@ before_install:
   - sudo apt-get install -y --force-yes smlnj ml-yacc ml-lex ml-ulex
   - which pdflatex
 
-apt:
-  packages:
-    - texlive-full
-    - texlive-xetex
-    - texlive-latex-extra
-    - texlive-fonts-recommended
-    - latex-xcolor
-    - lmodern
+addons:
+  apt:
+    packages:
+      - texlive-full
+      - texlive-xetex
+      - texlive-latex-extra
+      - texlive-fonts-recommended
+      - latex-xcolor
+      - lmodern
 
 script:
   - chmod u+x script/test.sh
