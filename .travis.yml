@@ -6,17 +6,11 @@ sudo: required
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -y --force-yes smlnj ml-yacc ml-lex ml-ulex
-  - which pdflatex
+  - which pdflatex || sudo apt-get install texlive-full texlive-latex-extra
 
-addons:
-  apt:
-    packages:
-      - texlive-full
-      - texlive-xetex
-      - texlive-latex-extra
-      - texlive-fonts-recommended
-      - latex-xcolor
-      - lmodern
+cache:
+  directories:
+  - /usr/bin
 
 script:
   - chmod u+x script/test.sh
