@@ -11,7 +11,7 @@ structure SearchReport = struct
 
   fun downIndentLevel () =
     if !indent > 0
-    then indent := !indent - 1
+    then indent := (!indent) - 1
     else raise Fail "indent level must not become negative"
 
   fun searchWithIndent f x =
@@ -23,11 +23,11 @@ structure SearchReport = struct
       result
     end
 
-  fun bullet s = (format (Bright, White) "• ") ^ s
-  fun line s = (format (Bright, White) "- ") ^ s
+  fun bullet s = (format (Bright, Black) "* ") ^ s
+  fun line s   = (format (Bright, Black) "- ") ^ s
 
   fun printLnWithIndent s =
-    (print (replicateStr (!indent) "   ");
+    (print (replicateStr (!indent) "  ");
      printLn s)
 
   fun prProps' [] = ""
@@ -36,38 +36,31 @@ structure SearchReport = struct
 
   fun prProps ps = "[" ^ prProps' (List.rev ps) ^ "]"
 
-  fun prSequent G O C =
-    (print (replicateStr (!indent) "    ");
-    format (Bright, White) ((prProps G) ^ "; " ^ (prProps O) ^ "  ---->  " ^ (Syntax.pretty C)))
+  fun prSequent' (G || O ===> C) =
+    (format (Bright, White) ((prProps G) ^ "; " ^ (prProps O) ^ "  ---->  " ^ (Syntax.pretty C)))
 
   fun printSequent (G || O) C =
     if Flags.shouldGenLaTeX ()
     then ()
-    else printLnWithIndent (bullet (prSequent G O C))
+    else printLnWithIndent (bullet (prSequent' (G || O ===> C)))
 
-  fun prSequent' (G || O ===> C) =
-    (print (replicateStr (!indent) "    ");
-    format (Bright, White) ((prProps G) ^ "; " ^ (prProps O) ^ "  ---->  " ^ (Syntax.pretty C)))
-
-  fun mkNewGoalMsg (newgoal1, newgoal2) =
+  fun mkNewGoalMsg newgoal =
     let
       val green : string -> string = Color.format (Bright, Green)
-      val mkMsg : sequent * sequent -> string =
-        fn (ngs1, ngs2) =>
-          (green "New subgoals: ")
-            ^ (prSequent' ngs1) ^ (green " and ") ^ (prSequent' ngs2)
+      val mkMsg : sequent -> string =
+        fn ngs => (green "New goal: ") ^ (prSequent' ngs)
     in
-      mkMsg (newgoal1, newgoal2)
+      mkMsg newgoal
     end
 
-  fun printNewGoals (newgoal1, newgoal2) =
-    printLnWithIndent ((bullet o mkNewGoalMsg) (newgoal1, newgoal2))
+  fun printNewGoal newgoal =
+    (upIndentLevel ();
+     printLnWithIndent ((line o mkNewGoalMsg) newgoal);
+     downIndentLevel ())
 
-  fun printMsg s =
-    if Flags.shouldGenLaTeX ()
-    then ()
-    else
-      (print (replicateStr (!indent) "   ");
-       printLn (format (Bright, Yellow) ("  -- " ^ s)))
+  fun printRule rlname =
+    (upIndentLevel ();
+     printLnWithIndent (line ("Apply " ^ rlname));
+     downIndentLevel ())
 
 end
