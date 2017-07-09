@@ -21,12 +21,11 @@ structure Utils = struct
     then range' x
     else raise Fail "negative number in range"
 
-  fun getSome'  _ [] = NONE
-    | getSome' (f : 'a -> 'b option) ((x::xs) : 'a list) =
+  fun getSome  _ [] = NONE
+    | getSome (f : 'a -> 'b option) ((x::xs) : 'a list) =
         (case f x of
           NONE => getSome f xs
         | x => x)
-  and getSome f xs = (printLn "  -- `getSome`"; getSome' f xs)
 
 
 
