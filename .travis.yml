@@ -8,12 +8,6 @@ before_install:
   - sudo apt-get install -y --force-yes smlnj ml-yacc ml-lex ml-ulex texlive-latex-base
   - tlmgr install ebproof
 
-addons:
-  apt:
-    packages:
-    - texlive-full
-
-
 script:
   - chmod u+x script/test.sh
   - chmod u+x script/test_latex.sh
