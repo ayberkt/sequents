@@ -21,6 +21,7 @@ whitespace = [\ \t];
 \n                 => (pos := !pos + 1; lex ());
 {whitespace}+      => (lex ());
 
+"~"                => (Tokens.NEG (!pos, move 1));
 "=>"               => (Tokens.IMPL (!pos, move 2));
 "/\\"              => (Tokens.CONJ    (!pos, move 2));
 "\\/"              => (Tokens.DISJ    (!pos, move 2));

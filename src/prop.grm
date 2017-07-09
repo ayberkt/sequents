@@ -5,6 +5,7 @@ open Syntax
 
 %term EOF
    | IDENT of string
+   | NEG
    | IMPL
    | CONJ
    | DISJ
@@ -25,6 +26,7 @@ open Syntax
 %right IMPL
 %right  CONJ
 %right  DISJ
+%nonassoc NEG
 %nonassoc  TOP
 %nonassoc  BOT
 %%
@@ -32,6 +34,7 @@ open Syntax
 start : prop                                                             (prop)
 
 prop  : IDENT                                                      (ATOM IDENT)
+      | NEG prop                                             (IMPL (prop, BOT))
       | prop CONJ prop                                    (CONJ (prop1, prop2))
       | prop DISJ prop                                    (DISJ (prop1, prop2))
       | prop IMPL prop                              (IMPL (prop1, prop2))
