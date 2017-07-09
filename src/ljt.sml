@@ -65,7 +65,8 @@ structure LJT = struct
 
   fun except xs n = (List.take (xs, n)) @ (List.drop (xs, n+1))
 
-  fun allCtxs G =
+  fun allCtxs [] = []
+    | allCtxs G =
     let
       (*val _ = (printLn o prCtxs) result*)
       val result = L.map (fn i => (L.nth (G, i), except G i)) (range ((L.length G)-1))
