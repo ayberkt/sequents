@@ -54,11 +54,16 @@ structure Main = struct
       let
         val prop =
           Parser.parse o valOf $ TextIO.inputLine TextIO.stdIn
-          handle ParseError s =>
-            (print ("Error: " ^ s ^ "\n"); raise Fail "foo")
+          handle
+            ParseError s => (print ("Error: " ^ s ^ "\n"); raise Fail "foo")
         val flgs = parseArgs defaultFlgs argv
+        val result =
+          LJT.prove prop
+          handle Fail s =>
+            (printLn ("Internal error: " ^ s);
+             OS.Process.exit OS.Process.failure)
       in
-        (case LJT.prove prop of
+        (case result of
           SOME drv =>
             (if #shouldGenLaTeX flgs
              then generate drv
