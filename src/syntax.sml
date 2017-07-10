@@ -15,13 +15,6 @@ structure Syntax = struct
 
   fun parens s = "(" ^ s ^ ")"
 
-  (*fun pretty (ATOM x) = x
-    | pretty (IMPL (p1, p2)) = parens $ (pretty p1) ^ " ⊃ " ^ (pretty p2)
-    | pretty (CONJ (p1, p2)) = parens $ (pretty p1) ^ " ∧ " ^ (pretty p2)
-    | pretty (DISJ (p1, p2)) = parens $ (pretty p1) ^ " ∨ " ^ (pretty p2)
-    | pretty TOP = "⊤"
-    | pretty BOT = "⊥"*)
-
   fun unparse (ATOM X)       = U.atom X
     | unparse (CONJ(A, B))   = U.infix' (U.Right, 4, "∧") (unparse A, unparse B)
     | unparse (DISJ(A, B))   = U.infix' (U.Non,   3, "∨") (unparse A, unparse B)

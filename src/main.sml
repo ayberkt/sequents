@@ -1,7 +1,6 @@
 structure Main = struct
   open Parser
   open Syntax
-  (*open InvCalc*)
   open Flags
   open LaTeXGen
 
