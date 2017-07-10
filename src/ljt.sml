@@ -11,7 +11,7 @@ structure LJT = struct
 
   val concludeWithBotL =
     fn G || O => fn C =>
-      (reportRemark "Ex falso quodlibet 💥 ";
+      (reportRemark "ex falso quodlibet 💥 .";
        reportProven ();
        ZeroInf (BotL, (BOT::G) || O ===> C))
 
