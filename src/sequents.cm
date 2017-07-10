@@ -13,5 +13,6 @@ Group is
   proofs.sml
   search-report.sml
   plain-explication.sml
+  gen-coq.sml
   ljt.sml
   latex-gen.sml
