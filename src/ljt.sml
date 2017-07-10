@@ -123,6 +123,7 @@ structure LJT = struct
                  OneInf (DisjR2, breakdown (G || [] ===> B), goal))
         end
     | breakdown (G || [] ===> C) = searchSync G C
+    | breakdown _ = raise Fail "breakdown case not supposed to happen"
 
   and searchSync G C =
     case getSome (eliminate C) (allCtxs G) of
