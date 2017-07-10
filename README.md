@@ -1,4 +1,4 @@
-# sequents [![Build Status](https://travis-ci.com/ayberkt/sequents.svg?token=2eB5JJ87XAYaE2ZJnQaJ&branch=master)](https://travis-ci.com/ayberkt/sequents)
+# sequents [![Build Status](https://travis-ci.org/ayberkt/sequents.svg?branch=master)](https://travis-ci.org/ayberkt/sequents)
 
 **sequents** is an implementation of [Roy Dyckhoff's LJT](https://rd.host.cs.st-andrews.ac.uk/publications/jsl57.pdf)—a sequent
 calculus for intuitionistic logic that is decidable and does _not_ need loop
@@ -33,7 +33,8 @@ Theorem: A ∧ B ⊃ B ∧ A.
 QED
 ```
 
-You can also generate LaTeX with `--latex` flag:
+You can also generate LaTeX with `--latex` flag. Make sure that you have `ebproof`
+installed though.
 ```
 ➜ echo "A /\ B => B /\ A" | ./sequents --latex > out.tex
 ➜ pdflatex out.tex
