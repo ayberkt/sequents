@@ -25,7 +25,7 @@ structure PlainGen = struct
       | ruleName' BotImplL   = "⊥⊃L"
       | ruleName' ImplImplL  = "⊃⊃L"
   in
-    fun ruleName r = "\\rlname{" ^ ruleName' r ^ "}"
+    fun ruleName r = format (Bright, Yellow) (ruleName' r)
   end
 
   fun bullet s = (format (Bright, DarkGray) "• ") ^ s
@@ -42,8 +42,10 @@ structure PlainGen = struct
       prProps' (List.rev ps)
     end
 
+  fun showProp P = format (Bright, White) (Syntax.pretty P)
+
   fun showSequent ([] || [] ===> C) =
-        format (Bright, White) (longarrow ^ SX.pretty C)
+        format (Bright, White) (longarrow ^ " " ^ SX.pretty C)
     | showSequent (G || O ===> C) =
         (format
           (Bright, White)
@@ -54,10 +56,34 @@ structure PlainGen = struct
     then ()
     else printLn (bullet (showSequent (G || O ===> C)))
 
-  fun mkInference rule conc =
-    "Infer " ^ showSequent conc ^ " by " ^ ruleName rule
+  fun reportNotProvable A =
+    printLn
+      (format (Bright, White) (Syntax.pretty A)
+        ^ (format (Bright, Red) " not provable"))
 
-  fun generate (ZeroInf (rule, conc)) =
-        printLn (mkInference rule conc)
-    | generate (OneInf (rule, D1, conc)) = raise Fail "TODO"
+  fun reportProven () =
+    (printLn o format (Bright, Green)) "QED"
+
+  fun declareTheorem P =
+    printLn ((format (Bright, Magenta) "Theorem. ") ^ showProp P)
+
+  fun mkInference rule conc =
+    "• " ^ showSequent conc ^ " by " ^ ruleName rule
+
+  fun explain P drv : unit =
+    let
+      fun explain' (ZeroInf (rule, conc)) =
+            printLn (mkInference rule conc)
+        | explain' (OneInf (rule, D1, conc)) =
+            (explain' D1; printLn (mkInference rule conc))
+        | explain' (TwoInf (rule, D1, D2, conc)) =
+            (explain' D1;
+             print "\n";
+             explain' D2;
+             print "\n";
+             printLn (mkInference rule conc))
+    in
+      (declareTheorem P; explain' drv; reportProven ())
+    end
+
 end
