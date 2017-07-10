@@ -166,16 +166,16 @@ structure LJT = struct
     | searchAsync (G || [] ===> A DISJ B) =
         let val goal = (G || [] ===> A DISJ B)
         in
-          OneInf (DisjL, left G (A DISJ B), goal)
+          OneInf (DisjL, searchSync G (A DISJ B), goal)
           handle NoProof =>
             (OneInf (DisjR1, searchAsync (G || [] ===> A), goal)
              handle NoProof =>
                  OneInf (DisjR2, searchAsync (G || [] ===> B), goal))
         end
     | searchAsync (G || [] ===> C) =
-      (printSequent (G || []) C; left G C)
+      (printSequent (G || []) C; searchSync G C)
 
-  and left G C =
+  and searchSync G C =
     case getSome (eliminate C) (allCtxs G) of
       SOME d => d
     | NONE => (reportNotProvable (); raise NoProof)
