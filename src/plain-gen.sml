@@ -31,6 +31,8 @@ structure PlainGen = struct
   fun bullet s = (format (Bright, DarkGray) "• ") ^ s
   fun line s   = (format (Bright, DarkGray) "- ") ^ s
 
+  val green : string -> string = format (Bright, Green)
+
   val longarrow = "---->"
 
   fun prProps ps =
@@ -65,7 +67,7 @@ structure PlainGen = struct
     (printLn o format (Bright, Green)) "QED"
 
   fun declareTheorem P =
-    printLn ((format (Bright, Magenta) "Theorem. ") ^ showProp P)
+    printLn ((green "Theorem: ") ^ showProp P ^ (green "."))
 
   fun mkInference rule conc =
     "• " ^ showSequent conc ^ " by " ^ ruleName rule
