@@ -36,11 +36,11 @@ structure LJT = struct
     fn ctx => fn (D, E, B, C) =>
       (insrt (E IMPL B) o insrt (D IMPL B)) ctx ===> C
 
-  fun except xs n = (List.take (xs, n)) @ (List.drop (xs, n+1))
+  fun except xs n = List.take (xs, n) @ List.drop (xs, n+1)
 
   fun allCtxs [] = []
     | allCtxs G =
-        L.map (fn i => (L.nth (G, i), except G i)) (range ((L.length G)-1))
+        L.map (fn i => (L.nth (G, i), except G i)) (range (L.length G - 1))
 
   val appDisjL : context -> prop * prop * prop -> sequent * sequent =
     fn (G || O) => fn (A, B, C) =>
