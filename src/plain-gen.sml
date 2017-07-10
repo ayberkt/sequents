@@ -2,6 +2,8 @@ structure PlainGen = struct
   structure SX = Syntax
   open Proofs
   open Syntax
+  open Color
+  open Utils
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
 
   local
@@ -26,6 +28,9 @@ structure PlainGen = struct
     fun ruleName r = "\\rlname{" ^ ruleName' r ^ "}"
   end
 
+  fun bullet s = (format (Bright, DarkGray) "• ") ^ s
+  fun line s   = (format (Bright, DarkGray) "- ") ^ s
+
   val longarrow = "---->"
 
   fun prProps ps =
@@ -47,12 +52,12 @@ structure PlainGen = struct
   fun printSequent (G || O) C =
     if Flags.shouldGenLaTeX ()
     then ()
-    else reportLn (bullet (nts ^ " " ^ showSequent (G || O ===> C)))
+    else printLn (bullet (showSequent (G || O ===> C)))
 
   fun mkInference rule conc =
     "Infer " ^ showSequent conc ^ " by " ^ ruleName rule
 
-  fun generate ZeroInf (rlname, conc) =
+  fun generate (ZeroInf (rule, conc)) =
         printLn (mkInference rule conc)
-    | generate OneInf (rule, D1, conc) = raise Fail "TODO"
+    | generate (OneInf (rule, D1, conc)) = raise Fail "TODO"
 end
