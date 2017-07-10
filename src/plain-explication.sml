@@ -1,4 +1,11 @@
-structure PlainGen = struct
+structure P = Proofs
+
+signature EXPLICATIVE = sig
+  val explain : P.prop -> P.derivation -> unit
+  val reportNotProvable : P.prop -> unit
+end
+
+structure PlainExplication : EXPLICATIVE = struct
   structure SX = Syntax
   open Proofs
   open Syntax
