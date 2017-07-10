@@ -2,9 +2,6 @@ structure Syntax = struct
   structure S = String
   structure U = Unparse
 
-  infixr 0 $
-  fun f $ x = f x
-
   datatype prop =
       ATOM of S.string
     | IMPL of prop * prop
