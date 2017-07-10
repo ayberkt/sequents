@@ -112,67 +112,67 @@ structure LJT = struct
       in (ctx1 ===> E, ctx2 ===> C) end
 
   (* Keep breaking down the asynchronous rules *)
-  fun right (ctx ===> TOP) =
+  fun searchAsync (ctx ===> TOP) =
         concludeWithTopR ctx
-    | right (ctx ===> A CONJ B) =
+    | searchAsync (ctx ===> A CONJ B) =
         let
           val _ = printSequent ctx (A CONJ B)
           val goal = ctx ===> A CONJ B
           val (newgoal1, newgoal2) = appConjR ctx A B
-        in TwoInf (ConjR, searchWithIndent right newgoal1, searchWithIndent right newgoal2, goal) end
-    | right (ctx ===> A IMPL B) =
+        in TwoInf (ConjR, searchWithIndent searchAsync newgoal1, searchWithIndent searchAsync newgoal2, goal) end
+    | searchAsync (ctx ===> A IMPL B) =
         let
           val _ = printSequent ctx (A IMPL B)
           val newgoal = appImplR ctx A B
-        in OneInf (ImplR, right newgoal, ctx ===> A IMPL B) end
-    | right (G || (A CONJ B::O) ===> C) =
+        in OneInf (ImplR, searchAsync newgoal, ctx ===> A IMPL B) end
+    | searchAsync (G || (A CONJ B::O) ===> C) =
         let
           val goal = (A CONJ B::G) || O ===> C
           val _ = printSequent (G || (A CONJ B::O)) C
           val newgoal = appConjL (G || O) (A, B, C)
-        in OneInf (ConjL, right newgoal, goal) end
-    | right (G || (TOP::O) ===> C) =
+        in OneInf (ConjL, searchAsync newgoal, goal) end
+    | searchAsync (G || (TOP::O) ===> C) =
         let
           val newgoal = appTopL (G || O ) C
         in
-          OneInf (TopL, right newgoal, G || (TOP::O) ===> C)
+          OneInf (TopL, searchAsync newgoal, G || (TOP::O) ===> C)
         end
-    | right (G || (BOT::O) ===> C) =
+    | searchAsync (G || (BOT::O) ===> C) =
         (printSequent (G || (BOT::O)) C;
          concludeWithBotL (G || O) C)
-    | right (G || (A DISJ B::O) ===> C) =
+    | searchAsync (G || (A DISJ B::O) ===> C) =
         let
           val _ = printSequent (G || (A DISJ B::O)) C
           val goal = G || (A DISJ B::O) ===> C
           val (newgoal1, newgoal2) = appDisjL (G || O) (A, B, C)
-        in TwoInf (DisjL, right newgoal1, right newgoal2, goal) end
-    | right (G || (TOP IMPL B::O) ===> C) =
+        in TwoInf (DisjL, searchAsync newgoal1, searchAsync newgoal2, goal) end
+    | searchAsync (G || (TOP IMPL B::O) ===> C) =
         let
           val _ = printSequent (G || (TOP IMPL B::O)) C
           val newgoal = appTopImplL (G || O) B C
-        in OneInf (TopImplL, right newgoal, G || (TOP IMPL B::O) ===> C) end
-    | right (G || (BOT IMPL B::O) ===> C) =
+        in OneInf (TopImplL, searchAsync newgoal, G || (TOP IMPL B::O) ===> C) end
+    | searchAsync (G || (BOT IMPL B::O) ===> C) =
         let val newgoal = G || O ===> C
-        in OneInf (BotImplL, right newgoal, G || (BOT IMPL B::O) ===> C) end
-    | right (G || (D CONJ E IMPL B::O) ===> C) =
+        in OneInf (BotImplL, searchAsync newgoal, G || (BOT IMPL B::O) ===> C) end
+    | searchAsync (G || (D CONJ E IMPL B::O) ===> C) =
         let val goal = G || (D CONJ E IMPL B::O) ===> C
             val newgoal = appConjImplL (G || O) (D, E, B, C)
-        in OneInf (ConjImplL, right newgoal, goal) end
-    | right (G || (D DISJ E IMPL B::O) ===> C) =
+        in OneInf (ConjImplL, searchAsync newgoal, goal) end
+    | searchAsync (G || (D DISJ E IMPL B::O) ===> C) =
         let val _ = printSequent (G || (D DISJ E IMPL B::O)) C
             val goal = G || (D DISJ E IMPL B::O) ===> C
             val newgoal = appDisjImplL (G || O) D E B C
-        in OneInf (DisjImplL, right newgoal, goal) end
-    | right (G || [] ===> A DISJ B) =
+        in OneInf (DisjImplL, searchAsync newgoal, goal) end
+    | searchAsync (G || [] ===> A DISJ B) =
         let val goal = (G || [] ===> A DISJ B)
         in
           OneInf (DisjL, left G (A DISJ B), goal)
           handle NoProof =>
-            (OneInf (DisjR1, right (G || [] ===> A), goal)
+            (OneInf (DisjR1, searchAsync (G || [] ===> A), goal)
              handle NoProof =>
-                 OneInf (DisjR2, right (G || [] ===> B), goal))
+                 OneInf (DisjR2, searchAsync (G || [] ===> B), goal))
         end
-    | right (G || [] ===> C) =
+    | searchAsync (G || [] ===> C) =
       (printSequent (G || []) C; left G C)
 
   and left G C =
@@ -192,7 +192,7 @@ structure LJT = struct
             val goal = (ATOM X IMPL B::ctx) || [] ===> C
         in
           (case appAtomImplL ctx (ATOM X, B, C) of
-             newgoal => SOME (OneInf (AtomImplL, right newgoal, goal)))
+             newgoal => SOME (OneInf (AtomImplL, searchAsync newgoal, goal)))
            handle NoProof => NONE
         end
     | eliminate C ((D IMPL E) IMPL B, ctx) =
@@ -202,13 +202,13 @@ structure LJT = struct
           case appImplImplL (ctx || []) (D, E, B, C) of
             (newgoal1, newgoal2) =>
               (printRule "⊃⊃L";
-              SOME (TwoInf (ImplImplL, right newgoal1, right newgoal2, goal)))
+              SOME (TwoInf (ImplImplL, searchAsync newgoal1, searchAsync newgoal2, goal)))
           handle NoProof => NONE
         end
     | eliminate _ _ = raise Fail "internal error"
 
   fun search C =
-    SOME (right ([] || [] ===> C))
+    SOME (searchAsync ([] || [] ===> C))
     handle NoProof => NONE
 
   val prove : prop -> derivation option = search
