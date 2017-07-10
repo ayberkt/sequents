@@ -4,10 +4,7 @@ structure Main = struct
   open Flags
   open LaTeXGen
 
-  infixr 0 $
-  infixr 4 ===>
-  infix  5 ||
-
+  infixr 0 $ infixr 4 ===> infix  5 ||
 
   local
     fun printLn s = print (s ^ "\n")
