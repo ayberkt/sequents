@@ -205,7 +205,7 @@ structure LJT = struct
               SOME (TwoInf (ImplImplL, right newgoal1, right newgoal2, goal)))
           handle NoProof => NONE
         end
-    | eliminate _ _ = (printLn "impossible case"; raise Fail "TODO")
+    | eliminate _ _ = raise Fail "internal error"
 
   fun search C =
     SOME (right ([] || [] ===> C))
