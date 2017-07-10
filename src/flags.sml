@@ -12,7 +12,9 @@ structure Flags : FLAGS = struct
   fun parseArgs [] = ()
     | parseArgs ("--latex"::rest) =
         (flgShouldGenLaTeX := true; parseArgs rest)
-    | parseArgs ("--steps"::rest) = parseArgs rest
     | parseArgs ("--out"::file::rest) =
         (flgOutFile := SOME file; parseArgs rest)
+    | parseArgs (arg::_) =
+        (print ("Unrecognized argument: " ^ arg ^ "\n");
+         OS.Process.exit OS.Process.failure)
 end
