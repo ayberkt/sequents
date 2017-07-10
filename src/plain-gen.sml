@@ -49,5 +49,10 @@ structure PlainGen = struct
     then ()
     else reportLn (bullet (nts ^ " " ^ showSequent (G || O ===> C)))
 
-  fun generate ZeroInf (rlname,)=
+  fun mkInference rule conc =
+    "Infer " ^ showSequent conc ^ " by " ^ ruleName rule
+
+  fun generate ZeroInf (rlname, conc) =
+        printLn (mkInference rule conc)
+    | generate OneInf (rule, D1, conc) = raise Fail "TODO"
 end
