@@ -1,14 +1,11 @@
 structure Main = struct
   open Parser
   open Syntax
-  (*open InvCalc*)
   open Flags
   open LaTeXGen
+  structure PE = PlainExplication
 
-  infixr 0 $
-  infixr 4 ===>
-  infix  5 ||
-
+  infixr 0 $ infixr 4 ===> infix  5 ||
 
   local
     fun printLn s = print (s ^ "\n")
@@ -31,8 +28,8 @@ structure Main = struct
           SOME drv =>
             (if Flags.shouldGenLaTeX ()
              then generate drv
-             else printLn "Proof found!"; 0)
-         | NONE => 1
+             else (printLn "Proof found!"; PE.explain prop drv); 0)
+         | NONE => (PE.reportNotProvable prop; 1)
          handle _ => (print "Error\n"; 1))
       end
   end
