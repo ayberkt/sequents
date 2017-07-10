@@ -37,14 +37,17 @@ structure PlainGen = struct
       prProps' (List.rev ps)
     end
 
-  fun prSequent' ([] || [] ===> C) =
-        format (Bright, White ) (" ---> " ^ (SX.pretty C))
-    | prSequent' (G || O ===> C) =
-        (format (Bright, White) ((prProps (O@G)) ^ " ----> " ^ (SX.pretty C)))
+  fun showSequent ([] || [] ===> C) =
+        format (Bright, White) (longarrow ^ SX.pretty C)
+    | showSequent (G || O ===> C) =
+        (format
+          (Bright, White)
+          ((prProps (O@G)) ^ " " ^ longarrow ^ " "  ^ (SX.pretty C)))
 
   fun printSequent (G || O) C =
     if Flags.shouldGenLaTeX ()
     then ()
-    else reportLn (bullet (nts ^ " " ^  prSequent' (G || O ===> C)))
+    else reportLn (bullet (nts ^ " " ^ showSequent (G || O ===> C)))
 
+  fun generate ZeroInf (rlname,)=
 end
