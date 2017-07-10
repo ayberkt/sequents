@@ -6,32 +6,33 @@ structure PlainGen = struct
   open Utils
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
 
-  local
-    fun ruleName' ConjR      = "∧R"
-      | ruleName' ConjL      = "∧L"
-      | ruleName' TopR       = "⊤R"
-      | ruleName' ImplR      = "⊃R"
-      | ruleName' Init       = "init"
-      | ruleName' DisjL      = "∨L"
-      | ruleName' DisjR1     = "∨R_1"
-      | ruleName' DisjR2     = "∨R_2"
-      | ruleName' TopL       = "⊤L"
-      | ruleName' BotL       = "⊥L"
-      | ruleName' ImplL      = "⊃L"
-      | ruleName' AtomImplL  = "P⊃L"
-      | ruleName' ConjImplL  = "∧⊃L"
-      | ruleName' TopImplL   = "⊤⊃L"
-      | ruleName' DisjImplL  = "∨⊃L"
-      | ruleName' BotImplL   = "⊥⊃L"
-      | ruleName' ImplImplL  = "⊃⊃L"
-  in
-    fun ruleName r = format (Bright, Yellow) (ruleName' r)
-  end
+  fun ruleName r =
+    let
+      fun ruleName' ConjR      = "∧R"
+        | ruleName' ConjL      = "∧L"
+        | ruleName' TopR       = "⊤R"
+        | ruleName' ImplR      = "⊃R"
+        | ruleName' Init       = "init"
+        | ruleName' DisjL      = "∨L"
+        | ruleName' DisjR1     = "∨R_1"
+        | ruleName' DisjR2     = "∨R_2"
+        | ruleName' TopL       = "⊤L"
+        | ruleName' BotL       = "⊥L"
+        | ruleName' ImplL      = "⊃L"
+        | ruleName' AtomImplL  = "P⊃L"
+        | ruleName' ConjImplL  = "∧⊃L"
+        | ruleName' TopImplL   = "⊤⊃L"
+        | ruleName' DisjImplL  = "∨⊃L"
+        | ruleName' BotImplL   = "⊥⊃L"
+        | ruleName' ImplImplL  = "⊃⊃L"
+    in
+      format (Bright, Yellow) (ruleName' r)
+    end
 
-  fun bullet s = (format (Bright, DarkGray) "• ") ^ s
-  fun line s   = (format (Bright, DarkGray) "- ") ^ s
+  val bullet = fn s => (format (Bright, DarkGray) "• ") ^ s
 
-  val green : string -> string = format (Bright, Green)
+  val green  = format (Bright, Green)
+  val bright = format (Bright, White)
 
   val longarrow = "---->"
 
@@ -44,23 +45,21 @@ structure PlainGen = struct
       prProps' (List.rev ps)
     end
 
-  fun showProp P = format (Bright, White) (Syntax.pretty P)
+  fun showProp P = format (Bright, White) (SX.pretty P)
 
   fun showSequent ([] || [] ===> C) =
-        format (Bright, White) (longarrow ^ " " ^ SX.pretty C)
+        bright (longarrow ^ " " ^ SX.pretty C)
     | showSequent (G || O ===> C) =
         (format
           (Bright, White)
           ((prProps (O@G)) ^ " " ^ longarrow ^ " "  ^ (SX.pretty C)))
 
   fun printSequent (G || O) C =
-    if Flags.shouldGenLaTeX ()
-    then ()
-    else printLn (bullet (showSequent (G || O ===> C)))
+    printLn (bullet (showSequent (G || O ===> C)))
 
   fun reportNotProvable A =
     printLn
-      (format (Bright, White) (Syntax.pretty A)
+      (format (Bright, White) (SX.pretty A)
         ^ (format (Bright, Red) " not provable"))
 
   fun reportProven () =
