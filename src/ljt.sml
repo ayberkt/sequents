@@ -15,7 +15,7 @@ structure LJT = struct
     fn G || O => fn C => ZeroInf (Init, G || O ===> C)
 
   val concludeWithTopR : context -> derivation =
-    fn G || O => ZeroInf (Init, G || O ===> TOP)
+    fn G || O => ZeroInf (TopR, G || O ===> TOP)
 
   fun insrt (ATOM X) (G || O) = (ATOM X::G) || O
     | insrt (ATOM X IMPL B) (G || O) = (ATOM X IMPL B::G) || O
