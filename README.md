@@ -33,7 +33,7 @@ Theorem: A ∧ B ⊃ B ∧ A.
 QED
 ```
 
-By the way, you can also generate LaTeX with `--latex` flag:
+You can also generate LaTeX with `--latex` flag:
 ```
 ➜ echo "A /\ B => B /\ A" | ./sequents --latex > out.tex
 ➜ pdflatex out.tex
