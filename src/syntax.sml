@@ -24,5 +24,4 @@ structure Syntax = struct
     | unparse BOT            = U.atom "⊥"
 
   val pretty = U.parens o U.done o unparse
-
 end
