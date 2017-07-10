@@ -20,28 +20,17 @@ approximations of the connectives, we can pipe this proposition into `sequents`.
 ```
 which gives the following:
 ```
-• NTS  ---> A ∧ B ⊃ B ∧ A
-  - Apply ⊃R.
-  - New goal: A ∧ B ----> B ∧ A
-• NTS A ∧ B ----> B ∧ A
-  - Apply ∧R.
-  - New goal: A ∧ B ----> B
-  - New goal: A ∧ B ----> A
-  • NTS A ∧ B ----> B
-    - New goal: A, B ----> B
-    - Apply ∧L.
-  • NTS A, B ----> B
-    - Note: B ∈ [A, B]
-    - Apply init.
-    - QED
-  • NTS A ∧ B ----> A
-    - New goal: A, B ----> A
-    - Apply ∧L.
-  • NTS A, B ----> A
-    - Note: A ∈ [B, A]
-    - Apply init.
-    - QED
 Proof found!
+Theorem: A ∧ B ⊃ B ∧ A.
+• A, B ----> B by init
+• A ∧ B ----> B by ∧L
+
+• B, A ----> A by init
+• A ∧ B ----> A by ∧L
+
+• A ∧ B ----> B ∧ A by ∧R
+• ----> A ∧ B ⊃ B ∧ A by ⊃R
+QED
 ```
 
 By the way, you can also generate LaTeX with `--latex` flag:
