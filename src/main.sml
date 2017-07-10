@@ -3,6 +3,7 @@ structure Main = struct
   open Syntax
   open Flags
   open LaTeXGen
+  structure PG = PlainGen
 
   infixr 0 $ infixr 4 ===> infix  5 ||
 
@@ -27,8 +28,8 @@ structure Main = struct
           SOME drv =>
             (if Flags.shouldGenLaTeX ()
              then generate drv
-             else printLn "Proof found!"; 0)
-         | NONE => 1
+             else (printLn "Proof found!"; PG.explain prop drv); 0)
+         | NONE => (PG.reportNotProvable prop; 1)
          handle _ => (print "Error\n"; 1))
       end
   end

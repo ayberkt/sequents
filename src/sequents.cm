@@ -12,5 +12,6 @@ Group is
   ../lib/sml-colors/colors.cm
   proofs.sml
   search-report.sml
+  plain-gen.sml
   ljt.sml
   latex-gen.sml
