@@ -3,19 +3,22 @@ structure TutchGen = struct
   open Utils
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
 
-  fun genProp (ATOM X) = X
-    | genProp TOP = "T"
-    | genProp BOT = "F"
-    | genProp (A CONJ B) = "(" ^ genProp A ^ " & " ^ genProp B ^ ")"
-    | genProp (A IMPL B) = "(" ^ genProp A ^ " => " ^ genProp B ^ ")"
-    | genProp (A DISJ B) = "(" ^ genProp A ^ " | " ^ genProp B ^ ")"
+  fun showProp (ATOM X) = X
+    | showProp TOP = "T"
+    | showProp BOT = "F"
+    | showProp (A CONJ B) = "(" ^ showProp A ^ " & " ^ showProp B ^ ")"
+    | showProp (A IMPL B) = "(" ^ showProp A ^ " => " ^ showProp B ^ ")"
+    | showProp (A DISJ B) = "(" ^ showProp A ^ " | " ^ showProp B ^ ")"
+
+  fun indent s = "  " ^ s
+
+  fun genProp A = (printLn o indent) (showProp A ^ ";")
 
   fun genStatement (G || O ===> A) =
-    printLn ("proof tm : " ^ genProp A ^ " =")
+    printLn ("proof tm : " ^ showProp A ^ " =")
 
   fun genBegin () = printLn "begin"
   fun genEnd   () = printLn "end;"
-  fun indent s = "  " ^ s
 
   fun generateProof (ZeroInf (TopR, _)) = genProp TOP
     | generateProof (TwoInf (ConjR, D1, D2, _ || _ ===> A CONJ B))  =
