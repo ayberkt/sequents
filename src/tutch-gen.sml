@@ -3,23 +3,29 @@ structure TutchGen = struct
   open Utils
   infixr 9 CONJ infixr 8 DISJ infixr 7 IMPL infix 5 || infixr 4 ===>
 
-  fun showProp (ATOM X) = X
-    | showProp TOP = "T"
-    | showProp BOT = "F"
-    | showProp (A CONJ B) = "(" ^ showProp A ^ " & " ^ showProp B ^ ")"
-    | showProp (A IMPL B) = "(" ^ showProp A ^ " => " ^ showProp B ^ ")"
-    | showProp (A DISJ B) = "(" ^ showProp A ^ " | " ^ showProp B ^ ")"
-
   val level : int ref = ref 0
   fun indentLeft  () = level := (!level) + 1
   fun indentRight () = level := (!level) - 1
 
-  fun emit s = printLn ((replicateStr (!level) "  ") ^ s)
+  local
+    fun emit s = printLn ((replicateStr (!level) "  ") ^ s)
 
-  fun genProp A = emit (showProp A ^ ";")
+    fun showProp (ATOM X) = X
+      | showProp TOP = "T"
+      | showProp BOT = "F"
+      | showProp (A CONJ B) = "(" ^ showProp A ^ " & " ^ showProp B ^ ")"
+      | showProp (A IMPL B) = "(" ^ showProp A ^ " => " ^ showProp B ^ ")"
+      | showProp (A DISJ B) = "(" ^ showProp A ^ " | " ^ showProp B ^ ")"
+  in
+    fun genProp A = emit (showProp A ^ ";")
 
-  fun genStatement (G || O ===> A) =
-    printLn ("proof tm : " ^ showProp A ^ " =")
+    fun genStatement (G || O ===> A) =
+      printLn ("proof tm : " ^ showProp A ^ " =")
+
+    fun genOpenBracket () = emit "["
+
+    fun genCloseBracket () = emit "];"
+  end
 
   fun genBegin () = printLn "begin"
   fun genEnd   () = printLn "end;"
@@ -27,12 +33,12 @@ structure TutchGen = struct
   fun generateProof (ZeroInf (Init, _ || _ ===> P)) = genProp P
     | generateProof (ZeroInf (TopR, _)) = genProp TOP
     | generateProof (OneInf (ImplR, D1, _ || _ ===> A IMPL B)) =
-        (emit "[";
+        (genOpenBracket ();
          indentLeft ();
          genProp A;
          generateProof D1;
          indentRight ();
-         emit "];";
+         genCloseBracket ();
          genProp (A IMPL B))
     | generateProof (OneInf (ConjL, D1, (A CONJ B::_) || _ ===> C))  =
         ( genProp A; genProp B; generateProof D1)
