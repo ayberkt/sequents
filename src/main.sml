@@ -1,7 +1,7 @@
 structure Main = struct
   open Parser
   open Syntax
-  open Flags
+  structure F = Flags
   open LaTeXGen
   structure PE = PlainExplication
 
@@ -26,9 +26,10 @@ structure Main = struct
       in
         (case result of
           SOME drv =>
-            (if Flags.shouldGenLaTeX ()
-             then generate drv
-             else (CoqGen.generateCoq prop drv); 0)
+            ((case (F.shouldGenLaTeX (), F.shouldGenCoq ()) of
+                (true, _) => LaTeXGen.generate drv
+              |  (_, true) => CoqGen.generateCoq prop drv
+              |  (_, _) => PE.explain prop drv); 0)
          | NONE => (PE.reportNotProvable prop; 1)
          handle _ => (print "Error\n"; 1))
       end
