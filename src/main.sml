@@ -3,6 +3,7 @@ structure Main = struct
   open Syntax
   open Flags
   open LaTeXGen
+  structure F = Flags
   structure PE = PlainExplication
 
   infixr 0 $ infixr 4 ===> infix  5 ||
@@ -26,9 +27,10 @@ structure Main = struct
       in
         (case result of
           SOME drv =>
-            (if Flags.shouldGenLaTeX ()
-             then generate drv
-             else (printLn "Proof found!"; PE.explain prop drv); 0)
+            ((case (F.shouldGenLaTeX (), F.shouldGenTutch ()) of
+                (true, _) => LaTeXGen.generate drv
+              |  (_, true) => TutchGen.genTutch drv
+              |  (_, _) => PE.explain prop drv); 0)
          | NONE => (PE.reportNotProvable prop; 1)
          handle _ => (print "Error\n"; 1))
       end
