@@ -17,7 +17,9 @@ structure TutchGen = struct
   fun genEnd   () = printLn "end;"
   fun indent s = "  " ^ s
 
-  fun generateProof (ZeroInf (TopR, _)) = (printLn o indent) "T;"
+  fun generateProof (ZeroInf (TopR, _)) = genProp TOP
+    | generateProof (TwoInf (ConjR, D1, D2, _ || _ ===> A CONJ B))  =
+        (generateProof D1; generateProof D2; genProp (A CONJ B))
 
   fun genTutch drv =
     (genStatement (getConc drv);
