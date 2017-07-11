@@ -4,24 +4,6 @@ structure CoqGen = struct
   open Proofs
   open Utils
 
-  (*fun tacticOf ConjR = "split"
-    | tacticOf ConjL = "destruct H"
-    | tacticOf TopR = "trivial"
-    | tacticOf ImplR = "intros"
-    | tacticOf ImplL = "TODO"
-    | tacticOf Init = "auto"
-    | tacticOf DisjL = raise Fail "TODO"
-    | tacticOf DisjR1 = raise Fail "TODO"
-    | tacticOf DisjR2 = raise Fail "TODO"
-    | tacticOf TopL = ""
-    | tacticOf BotL = raise Fail "TODO"
-    | tacticOf AtomImplL = raise Fail "TODO"
-    | tacticOf ConjImplL = raise Fail "TODO"
-    | tacticOf TopImplL = raise Fail "TODO"
-    | tacticOf DisjImplL = raise Fail "TODO"
-    | tacticOf BotImplL = raise Fail "TODO"
-    | tacticOf ImplImplL = raise Fail "TODO"*)
-
   fun vars (ATOM X) = [X]
     | vars TOP = []
     | vars BOT = []
