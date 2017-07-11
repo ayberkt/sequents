@@ -28,7 +28,7 @@ structure Main = struct
           SOME drv =>
             (if Flags.shouldGenLaTeX ()
              then generate drv
-             else (printLn "Proof found!"; PE.explain prop drv); 0)
+             else (CoqGen.generateCoq prop drv); 0)
          | NONE => (PE.reportNotProvable prop; 1)
          handle _ => (print "Error\n"; 1))
       end

@@ -31,6 +31,8 @@ structure Utils = struct
     | intersperse y [x] = [x]
     | intersperse y (x::xs)=x::y::(intersperse y xs)
 
+  fun nub [] = []
+    | nub (x::xs) = x::nub (List.filter (fn y => y <> x) xs)
 
   val replicateStr : int -> string -> string =
     let
