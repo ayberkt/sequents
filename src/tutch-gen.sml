@@ -6,9 +6,9 @@ structure TutchGen = struct
   fun genProp (ATOM X) = X
     | genProp TOP = "T"
     | genProp BOT = "F"
-    | genProp (A CONJ B) = genProp A ^ " & " ^ genProp B
-    | genProp (A IMPL B) = genProp A ^ " => " ^ genProp B
-    | genProp (A DISJ B) = genProp A ^ " | " ^ genProp B
+    | genProp (A CONJ B) = "(" ^ genProp A ^ " & " ^ genProp B ^ ")"
+    | genProp (A IMPL B) = "(" ^ genProp A ^ " => " ^ genProp B ^ ")"
+    | genProp (A DISJ B) = "(" ^ genProp A ^ " | " ^ genProp B ^ ")"
 
   fun genStatement (G || O ===> A) =
     printLn ("proof tm : " ^ genProp A ^ " =")
