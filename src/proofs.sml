@@ -24,4 +24,8 @@
     | OneInf  of rule * derivation * sequent
     | TwoInf  of rule * derivation * derivation * sequent
 
+  fun getConc (ZeroInf (_, c)) = c
+    | getConc (OneInf (_, _, c)) = c
+    | getConc (TwoInf (_, _, _, c)) = c
+
  end
