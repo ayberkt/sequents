@@ -1,0 +1,5 @@
+Library
+  structure Coord
+  structure Pos
+is
+  ../lib/cmlib/cmlib.cm
