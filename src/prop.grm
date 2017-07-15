@@ -17,18 +17,19 @@ open Syntax
 %nonterm start of prop | prop of prop
 
 %verbose
-%pos int
+%pos (string -> Coord.t)
 %start start
 %eop EOF
 %noshift EOF
 %name Prop
 %nonassoc LPAREN RPAREN
 %right IMPL
-%right  CONJ
-%right  DISJ
+%right CONJ
+%right DISJ
 %nonassoc NEG
-%nonassoc  TOP
-%nonassoc  BOT
+%nonassoc TOP
+%nonassoc BOT
+%arg (fname) : string
 %%
 
 start : prop                                                             (prop)
