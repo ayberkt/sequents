@@ -17,9 +17,9 @@ structure LJT = struct
   val concludeWithTopR : context -> derivation =
     fn G || O => ZeroInf (TopR, G || O ===> TOP)
 
-  fun insrt (ATOM X) (G || O) = (ATOM X::G) || O
-    | insrt (ATOM X IMPL B) (G || O) = (ATOM X IMPL B::G) || O
-    | insrt ((A IMPL B) IMPL D) (G || O) = (((A IMPL B) IMPL D)::G) || O
+  fun insrt (p as ATOM X) (G || O) = (p::G) || O
+    | insrt (p as ATOM X IMPL B) (G || O) = (p::G) || O
+    | insrt (p as (A IMPL B) IMPL D) (G || O) = (p::G) || O
     | insrt A (G || O) = G || (A::O)
 
   val appConjR = fn ctx => fn (A, B) => (ctx ===> A, ctx ===> B)
