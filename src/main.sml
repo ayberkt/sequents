@@ -5,6 +5,7 @@ structure Main = struct
   open LaTeXGen
   structure F = Flags
   structure PE = PlainExplication
+  structure P = Pos
 
   infixr 0 $ infixr 4 ===> infix  5 ||
 
@@ -18,7 +19,7 @@ structure Main = struct
         val prop =
           Parser.parse o valOf $ TextIO.inputLine TextIO.stdIn
           handle
-            ParseError s => (print ("Error: " ^ s ^ "\n"); raise Fail "foo")
+            ParseError (p, s) => (print ("Error: " ^ P.toString p ^ "\n"); raise Fail "foo")
         val result =
           LJT.prove prop
           handle Fail s =>
