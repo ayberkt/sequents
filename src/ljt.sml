@@ -28,15 +28,15 @@ structure LJT = struct
 
   val appConjL = fn ctx => fn (A, B, C) => (insrt B o insrt A) ctx ===> C
 
-  val appTopL = fn ctx => fn C => ctx ===> C
+  val appTopL  = fn ctx => fn C => ctx ===> C
 
-  fun appTopImplL (G || O) B C = insrt B (G || O) ===> C
+  fun appTopImplL ctx B C = insrt B ctx ===> C
 
   val appDisjImplL =
     fn ctx => fn (D, E, B, C) =>
       (insrt (E IMPL B) o insrt (D IMPL B)) ctx ===> C
 
-  fun except xs n = List.take (xs, n) @ List.drop (xs, n+1)
+  fun except xs n = L.take (xs, n) @ L.drop (xs, n+1)
 
   fun allCtxs [] = []
     | allCtxs G =
@@ -54,7 +54,7 @@ structure LJT = struct
 
   val appAtomImplL  : prop list -> prop * prop * prop -> sequent =
       fn G => fn (P, B, C) =>
-        if List.exists (fn x => x = P) G
+        if L.exists (fn x => x = P) G
         then (insrt B (G || [])) ===> C
         else raise NoProof
 
@@ -73,7 +73,9 @@ structure LJT = struct
     | breakdown (goal as (ctx ===> A CONJ B)) =
         let
           val (newgoal1, newgoal2) = appConjR ctx (A, B)
-        in TwoInf (ConjR, breakdown newgoal1, breakdown newgoal2, goal) end
+        in
+          TwoInf (ConjR, breakdown newgoal1, breakdown newgoal2, goal)
+        end
     | breakdown (ctx ===> A IMPL B) =
         let
           val newgoal = appImplR ctx (A, B)
@@ -95,21 +97,21 @@ structure LJT = struct
           val (newgoal1, newgoal2) = appDisjL (G || O) (A, B, C)
         in TwoInf (DisjL, breakdown newgoal1, breakdown newgoal2, goal) end
     | breakdown (G || (TOP IMPL B::O) ===> C) =
-        let
-          val newgoal = appTopImplL (G || O) B C
+        let val newgoal = appTopImplL (G || O) B C
         in OneInf (TopImplL, breakdown newgoal, G || (TOP IMPL B::O) ===> C) end
     | breakdown (G || (BOT IMPL B::O) ===> C) =
         let val newgoal = G || O ===> C
         in OneInf (BotImplL, breakdown newgoal, G || (BOT IMPL B::O) ===> C) end
     | breakdown (goal as (G || (D CONJ E IMPL B::O) ===> C)) =
-        let
-            val newgoal = appConjImplL (G || O) (D, E, B, C)
+        let val newgoal = appConjImplL (G || O) (D, E, B, C)
         in OneInf (ConjImplL, breakdown newgoal, goal) end
     | breakdown (G || (D DISJ E IMPL B::O) ===> C) =
         let
           val goal = G || (D DISJ E IMPL B::O) ===> C
           val newgoal = appDisjImplL (G || O) (D, E, B, C)
-        in OneInf (DisjImplL, breakdown newgoal, goal) end
+        in
+          OneInf (DisjImplL, breakdown newgoal, goal)
+        end
     | breakdown (goal as (G || [] ===> A DISJ B)) =
         (OneInf (DisjL, searchSync G (A DISJ B), goal)
         handle NoProof =>
@@ -148,9 +150,7 @@ structure LJT = struct
         end
     | eliminate _ _ = raise Fail "internal error"
 
-  fun search C =
-    SOME (breakdown ([] || [] ===> C))
-    handle NoProof => NONE
+  fun search C = SOME (breakdown ([] || [] ===> C)) handle NoProof => NONE
 
   val prove : prop -> derivation option = search
 
