@@ -4,3 +4,6 @@
 [submodule "lib/sml-colors"]
 	path = lib/sml-colors
 	url = https://github.com/ayberkt/sml-colors
+[submodule "lib/cmlib"]
+	path = lib/cmlib
+	url = https://github.com/standardml/cmlib
