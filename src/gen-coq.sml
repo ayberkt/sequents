@@ -43,30 +43,28 @@ structure CoqGen = struct
 
   fun getId n = if n > 0 then "H" ^ (Int.toString (n-1)) else "H"
 
-  fun genTactics (ZeroInf (TopR, _)) _ = genTactic "trivial"
-    | genTactics (ZeroInf (BotL, _)) _ = genTactic "destruct void"
-    | genTactics (ZeroInf (Init, _ || _ ===> ATOM X)) _ =
-        genTactic ("apply p" ^ X)
-    | genTactics (OneInf (TopL, D1, _)) n = genTactics D1 n
-    | genTactics (OneInf (ImplR, D1, _ || _ ===> (ATOM X) IMPL C)) n =
-        (genTactic ("intro p" ^ X); genTactics D1 n)
-    | genTactics (OneInf (ImplR, D1, _ || _ ===> BOT IMPL _)) n =
-        (genTactic "intro void"; genTactics D1 n)
-    | genTactics (OneInf (DisjR1, D1, _)) n =
-        (genTactic "left"; genTactics D1 n)
-    | genTactics (OneInf (DisjR2, D1, _)) n =
-        (genTactic "right"; genTactics D1 n)
-    | genTactics (OneInf (ImplR, D1, _)) n =
-        (genTactic "intro"; genTactics D1 n)
-    | genTactics (OneInf (ConjL, D1, _)) n = genTactic "admit"
-    | genTactics (TwoInf (ConjR, D1, D2, _)) n =
-        (genTactic "split"; genTactics D1 n; genTactics D2 n)
-    | genTactics (OneInf (ConjImplL, D1, _ || _ ===> C)) n =
-        (genTactic ("apply " ^ getId n);
-         genTactic "split";
-         genTactic ("apply" ^ getId (n+1));
-         genTactic ("apply" ^ getId (n+2)))
-    | genTactics _ _ = genTactic "admit"
+  fun genTactics (ZeroInf (TopR, _)) = genTactic "trivial"
+    | genTactics (ZeroInf (BotL, _)) = genTactic "destruct void"
+    | genTactics (ZeroInf (Init, _ || _ ===> ATOM X)) =
+        genTactic "assumption"
+    | genTactics (OneInf (TopL, D1, _)) = genTactics D1
+    | genTactics (OneInf (ImplR, D1, _ || _ ===> (ATOM X) IMPL C)) =
+        (genTactic ("intro p" ^ X); genTactics D1)
+    | genTactics (OneInf (ImplR, D1, _ || _ ===> BOT IMPL _)) =
+        (genTactic "intro void"; genTactics D1)
+    | genTactics (OneInf (DisjR1, D1, _)) =
+        (genTactic "left"; genTactics D1)
+    | genTactics (OneInf (DisjR2, D1, _)) =
+        (genTactic "right"; genTactics D1)
+    | genTactics (OneInf (ImplR, D1, _)) =
+        (genTactic "intro"; genTactics D1)
+    | genTactics (OneInf (ConjL, D1, _)) =
+        (genTactic "destruct H"; genTactics D1)
+    | genTactics (TwoInf (ConjR, D1, D2, _)) =
+        (genTactic "split"; genTactics D1; genTactics D2)
+    | genTactics (OneInf (ConjImplL, D1, _ || _ ===> C)) =
+        genTactic "TODO"
+    | genTactics _ = genTactic "admit"
 
   fun genProofStart () = print "Proof.\n"
   fun genQed () = print "Qed.\nCheck foo.\n"
@@ -81,7 +79,7 @@ structure CoqGen = struct
       (genTheoremStatement A;
        genProofStart ();
        printLn varIntros;
-       genTactics drv 0;
+       genTactics drv;
        genQed ())
     end
 
