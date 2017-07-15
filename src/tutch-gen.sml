@@ -40,11 +40,11 @@ structure TutchGen = struct
          indentRight ();
          genCloseBracket ();
          genProp (A IMPL B))
-    | generateProof (OneInf (ConjL, D1, (A CONJ B::_) || _ ===> C))  =
-        ( genProp A; genProp B; generateProof D1)
     | generateProof (TwoInf (ConjR, D1, D2, _ || _ ===> A CONJ B))  =
         (generateProof D1; generateProof D2; genProp (A CONJ B))
-    | generateProof _ = printLn "TODO"
+    | generateProof (OneInf (ConjL, D1, _ || (A CONJ B::_) ===> C)) =
+        (genProp A; genProp B; generateProof D1)
+    | generateProof _ = printLn "TODO (2)"
 
   fun genTutch drv =
     (genStatement (getConc drv);
