@@ -24,11 +24,11 @@ open Syntax
 %name Prop
 %nonassoc LPAREN RPAREN
 %right IMPL
-%right  CONJ
-%right  DISJ
+%right CONJ
+%right DISJ
 %nonassoc NEG
-%nonassoc  TOP
-%nonassoc  BOT
+%nonassoc TOP
+%nonassoc BOT
 %arg (fname) : string
 %%
 

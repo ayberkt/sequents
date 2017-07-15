@@ -7,6 +7,8 @@ type arg = string
 val pos = ref Coord.init
 val eof = fn (fname : string) => Tokens.EOF (!pos, !pos)
 
+val between = fn yt => Coord.addchar (size yt) o (!pos)
+
 exception LexerError of pos
 
 %%
@@ -19,7 +21,7 @@ whitespace = [\ \t];
 %%
 
 \n                 => (pos := (Coord.nextline o (!pos)); continue ());
-{whitespace}+      => (pos := (Coord.addchar (size yytext) o (!pos)); continue ());
+{whitespace}+      => (pos := between yytext; continue ());
 
 "~"                => (Tokens.NEG     (!pos, Coord.nextchar o (!pos)));
 "=>"               => (Tokens.IMPL    (!pos, Coord.nextchar o (!pos)));
@@ -28,7 +30,7 @@ whitespace = [\ \t];
 "T"                => (Tokens.TOP     (!pos, Coord.nextchar o (!pos)));
 "F"                => (Tokens.BOT     (!pos, Coord.nextchar o (!pos)));
 
-"("                => (Tokens.LPAREN (!pos, Coord.nextchar o (!pos)));
-")"                => (Tokens.RPAREN (!pos, Coord.nextchar o (!pos)));
+"("                => (Tokens.LPAREN  (!pos, Coord.nextchar o (!pos)));
+")"                => (Tokens.RPAREN  (!pos, Coord.nextchar o (!pos)));
 
-{alpha}{any}*      => (Tokens.IDENT (yytext, !pos, Coord.addchar (size yytext) o (!pos)));
+{alpha}{any}*      => (Tokens.IDENT (yytext, !pos, between yytext));
