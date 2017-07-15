@@ -17,7 +17,7 @@ open Syntax
 %nonterm start of prop | prop of prop
 
 %verbose
-%pos int
+%pos (string -> Coord.t)
 %start start
 %eop EOF
 %noshift EOF
@@ -29,6 +29,7 @@ open Syntax
 %nonassoc NEG
 %nonassoc  TOP
 %nonassoc  BOT
+%arg (fname) : string
 %%
 
 start : prop                                                             (prop)

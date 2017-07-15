@@ -1,16 +1,16 @@
-type pos = int
+type pos = string -> Coord.t
 type svalue = Tokens.svalue
-type ('a,'b) token = ('a,'b) Tokens.token
+type ('a, 'b) token = ('a, 'b) Tokens.token
 type lexresult = (svalue, pos) token
+type arg = string
 
-val pos = ref 0
-val eof = fn () => Tokens.EOF(!pos, !pos)
-
-fun move n = let val r = !pos in (pos := !pos + n; r) end
+val pos = ref Coord.init
+val eof = fn (fname : string) => Tokens.EOF (!pos, !pos)
 
 exception LexerError of pos
 
 %%
+%arg (fname : string);
 %header (functor PropLexFun (structure Tokens : Prop_TOKENS));
 alpha = [A-Za-z];
 digit = [0-9];
@@ -18,17 +18,17 @@ any   = [@a-zA-Z0-9];
 whitespace = [\ \t];
 %%
 
-\n                 => (pos := !pos + 1; lex ());
-{whitespace}+      => (lex ());
+\n                 => (pos := (Coord.nextline o (!pos)); continue ());
+{whitespace}+      => (pos := (Coord.addchar (size yytext) o (!pos)); continue ());
 
-"~"                => (Tokens.NEG (!pos, move 1));
-"=>"               => (Tokens.IMPL (!pos, move 2));
-"/\\"              => (Tokens.CONJ    (!pos, move 2));
-"\\/"              => (Tokens.DISJ    (!pos, move 2));
-"T"                => (Tokens.TOP     (!pos, move 1));
-"F"                => (Tokens.BOT     (!pos, move 1));
+"~"                => (Tokens.NEG     (!pos, Coord.nextchar o (!pos)));
+"=>"               => (Tokens.IMPL    (!pos, Coord.nextchar o (!pos)));
+"/\\"              => (Tokens.CONJ    (!pos, Coord.nextchar o (!pos)));
+"\\/"              => (Tokens.DISJ    (!pos, Coord.nextchar o (!pos)));
+"T"                => (Tokens.TOP     (!pos, Coord.nextchar o (!pos)));
+"F"                => (Tokens.BOT     (!pos, Coord.nextchar o (!pos)));
 
-"("                => (Tokens.LPAREN (!pos, !pos));
-")"                => (Tokens.RPAREN (!pos, !pos));
+"("                => (Tokens.LPAREN (!pos, Coord.nextchar o (!pos)));
+")"                => (Tokens.RPAREN (!pos, Coord.nextchar o (!pos)));
 
-{alpha}{any}*      => (Tokens.IDENT (yytext, !pos, !pos));
+{alpha}{any}*      => (Tokens.IDENT (yytext, !pos, Coord.addchar (size yytext) o (!pos)));
