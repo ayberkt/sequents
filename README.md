@@ -1,6 +1,6 @@
 # sequents [![Build Status](https://travis-ci.org/ayberkt/sequents.svg?branch=master)](https://travis-ci.org/ayberkt/sequents)
 
-**sequents** is an implementation of [Roy Dyckhoff's LJT](https://rd.host.cs.st-andrews.ac.uk/publications/jsl57.pdf)—a sequent
+**sequents** is an implementation of [Roy Dyckhoff's LJT](https://www.jstor.org/stable/2275431)—a sequent
 calculus for intuitionistic logic that is decidable and does _not_ need loop
 checking
 
