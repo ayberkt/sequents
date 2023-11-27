@@ -52,14 +52,13 @@ structure PlainExplication : EXPLICATIVE = struct
       prProps' (List.rev ps)
     end
 
-  fun showProp P = format (Bright, Black) (SX.pretty P)
+  fun showProp P = SX.pretty P
 
   fun showSequent ([] || [] ===> C) = longarrow ^ " " ^ SX.pretty C
-    | showSequent (G || O ===> C)   =
-        ((prProps (O@G)) ^ " " ^ longarrow ^ " "  ^ (SX.pretty C))
+    | showSequent (G  || O  ===> C)   =
+        prProps (O@G) ^ " " ^ longarrow ^ " "  ^ SX.pretty C
 
-  fun printSequent (G || O) C =
-    printLn (bullet (showSequent (G || O ===> C)))
+  fun printSequent (G || O) C = printLn (bullet (showSequent (G || O ===> C)))
 
   fun reportNotProvable A =
     printLn
@@ -70,7 +69,7 @@ structure PlainExplication : EXPLICATIVE = struct
     (printLn o format (Bright, Green)) "QED"
 
   fun declareTheorem P =
-    printLn ((green "Theorem: ") ^ showProp P ^ (green "."))
+    printLn (green "Theorem: " ^ showProp P ^ green ".")
 
   fun mkInference rule conc =
     "• " ^ showSequent conc ^ " by " ^ ruleName rule
