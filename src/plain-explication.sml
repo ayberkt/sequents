@@ -41,7 +41,7 @@ structure PlainExplication : EXPLICATIVE = struct
   val green  = format (Bright, Green)
   val bright = format (Bright, DarkGray)
 
-  val longarrow = "---->"
+  val longarrow = "==>"
 
   fun prProps ps =
     let
@@ -54,12 +54,9 @@ structure PlainExplication : EXPLICATIVE = struct
 
   fun showProp P = format (Bright, Black) (SX.pretty P)
 
-  fun showSequent ([] || [] ===> C) =
-        bright (longarrow ^ " " ^ SX.pretty C)
-    | showSequent (G || O ===> C) =
-        (format
-          (Bright, DarkGray)
-          ((prProps (O@G)) ^ " " ^ longarrow ^ " "  ^ (SX.pretty C)))
+  fun showSequent ([] || [] ===> C) = longarrow ^ " " ^ SX.pretty C
+    | showSequent (G || O ===> C)   =
+        ((prProps (O@G)) ^ " " ^ longarrow ^ " "  ^ (SX.pretty C))
 
   fun printSequent (G || O) C =
     printLn (bullet (showSequent (G || O ===> C)))
